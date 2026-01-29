@@ -186,12 +186,12 @@ export default function Home() {
             </div>
           </div>
           <div className="relative hidden lg:block">
-            <img
+            <motion.img
               src={avator}
               alt="Ansh Rathore"
               className="absolute top-1/2 -translate-y-1/2 object-contain slect-none pointer-events-none"
               style={{
-                right: "-30 px ",
+                right: "-30px",
                 width: "min(45vw ,780px)",
                 height: "90vh",
               }}

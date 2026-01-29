@@ -44,7 +44,7 @@ export default function About() {
             whileHover={{ scale: 1.02 }}
             transition={{ type: "spring", stiffness: 400, damping: 10 }}
           >
-            <img src={Avator} alt="Avatar" />
+            <img src={avator} alt="Avatar" />
           </motion.div>
 
           <div className="flex-1 flex flex-col justify-center text-center md:text-left">

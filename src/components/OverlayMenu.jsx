@@ -1,7 +1,7 @@
 import { motion, AnimatePresence, delay } from "framer-motion";
 import { FiX } from "react-icons/fi";
 export default function OverlayMenu({ isOpen, onClose }) {
-  const ismobile = typeof window !== "undefined" && window.innerwidth < 1024;
+  const ismobile = typeof window !== "undefined" && window.innerWidth < 1024;
   const origin = ismobile ? "95% 8%" : "50% 8%";
   return (
     <AnimatePresence>
