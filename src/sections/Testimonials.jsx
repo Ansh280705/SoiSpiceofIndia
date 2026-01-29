@@ -3,7 +3,7 @@ import React from "react";
 
 // Importing image assets for the testimonials section
 import m1 from "../assets/m1.png"; // Male testimonial image 1
-import m2 from "../assets/m2.png"; // Male testimonial image 2
+import m2 from "../assets/m2.PNG"; // Male testimonial image 2
 import w1 from "../assets/w1.png"; // Female testimonial image 1
 import w2 from "../assets/w2.png"; // Female testimonial image 2
 
