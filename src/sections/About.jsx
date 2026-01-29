@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import Avator from "../assets/Avator.png";
+import avator from "../assets/avator.png";
 
 export default function About() {
   const stats = [
