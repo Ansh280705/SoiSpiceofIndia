@@ -31,7 +31,7 @@ const Glowvariants = {
 
 export default function Home() {
   const roles = useMemo(
-    () => ["Web Devloper", "MERN Stack Devloper", "Software Devloper"],
+    () => ["Web Developer", "MERN Stack Developer", "Software Developer"],
     [],
   );
 
@@ -157,8 +157,10 @@ export default function Home() {
                 </a>
 
                 <a
-                  href="/AnshResume.pdf"
-                  download
+                  href="/Ansh_Resume.pdf"
+                  download="AnshResume.pdf"
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="px-6 py-3 rounded-full text-lg font-medium text-black bg-white hover:bg-gray-200 shadow-lg hover:scale-105 transition-all"
                 >
                   My Resume
