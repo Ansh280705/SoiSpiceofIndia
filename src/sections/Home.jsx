@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 
 import hero_bg from "../assets/hero_bg.png";
 import hero_slider_3 from "../assets/hero_slider_3.png";
+import hero_mobile from "../assets/hero_mobile.jpg";
 
 const SLIDE_DURATION = 6000;
 
@@ -71,11 +72,14 @@ export default function Home() {
           exit={{ opacity: 0 }}
           transition={{ duration: 1.5, ease: "easeInOut" }}
         >
-          <img 
-            src={slides[currentSlide].image} 
-            alt="Hero Background"
-            className="w-full h-full object-cover object-[center_35%] md:object-center"
-          />
+          <picture className="w-full h-full">
+            <source media="(max-width: 768px)" srcSet={hero_mobile} />
+            <img 
+              src={slides[currentSlide].image} 
+              alt="Hero Background"
+              className="w-full h-full object-cover object-[center_35%] md:object-center"
+            />
+          </picture>
           {/* Main Overlay - Lightened for 'Real' Colors */}
           <div className="absolute inset-0 bg-black/40 backdrop-blur-[0.5px]"></div>
         </motion.div>
