@@ -8,9 +8,16 @@ import hero_mobile from "../assets/hero_mobile.jpg";
 const SLIDE_DURATION = 6000;
 
 const slides = [
-  
-  { image: hero_bg, tagline: "Zero Adulteration. Real Taste." },
-  { image: hero_slider_3, tagline: "The World's Finest Organic Spices." }
+  { 
+    image: hero_bg, 
+    mobileImage: hero_mobile,
+    tagline: "Zero Adulteration. Real Taste." 
+  },
+  { 
+    image: hero_slider_3, 
+    mobileImage: hero_bg,
+    tagline: "The World's Finest Organic Spices." 
+  }
 ];
 
 export default function Home() {
@@ -73,7 +80,7 @@ export default function Home() {
           transition={{ duration: 1.5, ease: "easeInOut" }}
         >
           <picture className="w-full h-full">
-            <source media="(max-width: 768px)" srcSet={hero_mobile} />
+            <source media="(max-width: 768px)" srcSet={slides[currentSlide].mobileImage || slides[currentSlide].image} />
             <img 
               src={slides[currentSlide].image} 
               alt="Hero Background"

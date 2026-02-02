@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Lato:wght@300;400;700;900&family=Great+Vibes&display=swap');
 @import "tailwindcss";
 
 @theme {
@@ -7,8 +8,6 @@
   --color-brand-bg: #fffbf0; /* Warm Cream/Rice */
   --color-brand-text: #2d2d2d; /* Soft Charcoal */
 }
-
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Lato:wght@300;400;700;900&family=Great+Vibes&display=swap');
 
 body {
   font-family: "Lato", sans-serif;
