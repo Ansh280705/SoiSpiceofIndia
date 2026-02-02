@@ -65,27 +65,27 @@ export default function Home() {
       <AnimatePresence mode="wait">
         <motion.div 
           key={currentSlide}
-          className="absolute inset-0 z-0"
+          className="absolute inset-0 z-0 bg-black"
           initial={{ opacity: 0, scale: 1.05 }}
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 1.5, ease: "easeInOut" }}
-          style={{
-            backgroundImage: `url(${slides[currentSlide].image})`,
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
-          }}
         >
+          <img 
+            src={slides[currentSlide].image} 
+            alt="Hero Background"
+            className="w-full h-full object-cover object-[center_35%] md:object-center"
+          />
           {/* Main Overlay - Lightened for 'Real' Colors */}
-          <div className="absolute inset-0 bg-black/30 backdrop-blur-[0.5px]"></div>
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-[0.5px]"></div>
         </motion.div>
       </AnimatePresence>
 
-      <div className="relative z-10 text-center px-4 max-w-5xl mx-auto">
+      <div className="relative z-10 text-center px-6 max-w-5xl mx-auto flex flex-col items-center">
         <AnimatePresence mode="wait">
           <motion.div
             key={currentSlide + "tag"}
-            className="mb-4 text-brand-secondary text-xl md:text-2xl font-bold tracking-[0.2em] uppercase italic"
+            className="mb-4 text-brand-secondary text-sm md:text-2xl font-bold tracking-[0.2em] uppercase italic bg-black/20 px-4 py-1 rounded-full backdrop-blur-sm"
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 10 }}
@@ -96,23 +96,23 @@ export default function Home() {
         </AnimatePresence>
 
         <motion.h1
-          className="text-5xl sm:text-7xl md:text-8xl lg:text-9xl font-bold text-white leading-tight"
+          className="text-4xl sm:text-7xl md:text-8xl lg:text-9xl font-bold text-white leading-[1.05] tracking-tight"
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 1, delay: 0.2 }}
         >
           Real Spices <br />
-          <span className="bg-gradient-to-r from-brand-secondary via-brand-accent to-brand-primary bg-clip-text text-transparent drop-shadow-[0_2px_15px_rgba(230,184,0,0.5)]">Real Purity</span>
+          <span className="bg-gradient-to-r from-brand-secondary via-brand-accent to-brand-primary bg-clip-text text-transparent drop-shadow-[0_4px_20px_rgba(165,42,42,0.6)]">Real Purity</span>
         </motion.h1>
 
         <motion.div
-          className="mt-6 text-2xl md:text-3xl text-brand-secondary font-bold h-10"
+          className="mt-8 text-base md:text-3xl text-brand-secondary font-bold h-10 flex items-center justify-center bg-white/5 backdrop-blur-md px-6 rounded-2xl border border-white/10"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.6, delay: 0.5 }}
         >
-          <span className="text-white opacity-80 mr-2">Experience</span>
-          <span className="text-brand-secondary drop-shadow-sm">{roles[index].substring(0, subIndex)}</span>
+          <span className="text-white/80 mr-2 font-medium">Experience</span>
+          <span className="text-brand-secondary drop-shadow-[0_0_10px_rgba(230,184,0,0.4)]">{roles[index].substring(0, subIndex)}</span>
           <span className="inline-block w-[3px] ml-1 bg-brand-primary animate-pulse h-[1em] align-middle"></span>
         </motion.div>
 
