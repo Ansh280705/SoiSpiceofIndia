@@ -16,13 +16,13 @@ const stories = [
     label: "Bediya Chilli"
   },
   {
-    heading: "The Ancient Gold of Waigaon",
-    subheading: "A Mughal Heritage for Immunity",
-    content: "Sourced from the deep black alkaline soils of the Wardha valley, SOI brings you the legendary Waigaon Turmeric. With a heritage dating back to the Mughal era and protected by a prestigious GI Tag, our haldi is a powerhouse of health. Containing over 6% Curcumin, it offers nearly double the medicinal strength of regular turmeric. Naturally sun-dried and cold-processed to preserve its essential oils, SOI Waigaon Turmeric is more than a spice—it is an ancient secret for immunity and vibrant flavor.",
+    heading: "The Yellow Gold of Erode. The Purity of SOI.",
+    subheading: "Southern Sunshine for Superior Immunity",
+    content: "Sourced from the rich, red soils of the Kaveri basin, SOI brings you the legendary Erode Turmeric. Protected by a prestigious GI Tag, our 'Yellow Gold' is famous for its deep color and high medicinal strength. Naturally sun-dried and cold-processed to lock in its potent Curcumin and essential oils, SOI is more than a spice—it is a concentrated drop of Southern sunshine, crafted for superior immunity and vibrant flavor.",
     image: turmeric_signature,
     accent: "text-[#B8860B]",
     bg: "bg-[#fffdf2]",
-    label: "Waigaon Haldi"
+    label: "Erode Haldi"
   },
   {
     heading: "The Lemony Soul of Kumbhraj",
