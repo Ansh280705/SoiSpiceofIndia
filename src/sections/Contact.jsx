@@ -1,19 +1,8 @@
-// Importing React's useState hook for managing component state
 import { useState } from "react";
-
-// Importing motion component from Framer Motion for animations
 import { motion } from "framer-motion";
-
-// Importing EmailJS SDK
 import emailjs from "@emailjs/browser";
+import { FiMail, FiPhone, FiMapPin, FiSend } from "react-icons/fi";
 
-// Importing Particles Background (same as Home component)
-import ParticlesBackground from "../components/ParticlesBackground.jsx";
-
-// Importing the contact image asset
-import Astra from "../assets/Astra.png";
-
-// Reading EmailJS credentials from environment variables (Vite)
 const SERVICE_ID = import.meta.env.VITE_SERVICE_ID;
 const TEMPLATE_ID = import.meta.env.VITE_TEMPLATE_ID;
 const PUBLIC_KEY = import.meta.env.VITE_PUBLIC_KEY;
@@ -22,9 +11,8 @@ export default function Contact() {
   const [formData, setFormData] = useState({
     name: "",
     email: "",
-    service: "",
-    budget: "",
-    idea: "",
+    type: "",
+    message: "",
   });
 
   const [errors, setErrors] = useState({});
@@ -32,249 +20,170 @@ export default function Contact() {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-
-    if (name === "budget" && value && !/^\d+$/.test(value)) return;
-
     setFormData((p) => ({ ...p, [name]: value }));
-
     if (errors[name]) setErrors((p) => ({ ...p, [name]: "" }));
   };
 
   const validateForm = () => {
-    const required = ["name", "email", "service", "idea"];
+    const required = ["name", "email", "type", "message"];
     const newErrors = {};
-
-    required.forEach(
-      (f) => !formData[f].trim() && (newErrors[f] = "Fill this field"),
-    );
-
-    if (formData.service !== "other" && !formData.budget.trim())
-      newErrors.budget = "Fill this field";
-
+    required.forEach((f) => !formData[f].trim() && (newErrors[f] = "Required"));
     setErrors(newErrors);
     return !Object.keys(newErrors).length;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     if (!validateForm()) return;
-
     setStatus("sending");
-
     try {
       await emailjs.send(
-        SERVICE_ID,
-        TEMPLATE_ID,
-        {
-          ...formData,
-          from_name: formData.name,
-          reply_to: formData.email,
-        },
-        PUBLIC_KEY,
+        SERVICE_ID, TEMPLATE_ID,
+        { ...formData, from_name: formData.name, reply_to: formData.email },
+        PUBLIC_KEY
       );
-
       setStatus("success");
-      setFormData({ name: "", email: "", service: "", budget: "", idea: "" });
+      setFormData({ name: "", email: "", type: "", message: "" });
     } catch (err) {
-      console.error("EmailJS Error:", err);
       setStatus("error");
     }
   };
 
   return (
-    <section
-      id="contact"
-      className="w-full min-h-screen relative bg-black overflow-hidden text-white py-20 px-6 md:px-20 flex flex-col md:flex-row items-center gap-10"
-    >
-      {/* Particles Background */}
-      <ParticlesBackground />
+    <section id="contact" className="py-32 bg-white relative overflow-hidden">
+      {/* Decorative background element */}
+      <div className="absolute top-0 right-0 w-1/3 h-full bg-brand-bg/50 transform skew-x-12 translate-x-32 hidden lg:block"></div>
 
-      {/* Contact Section Content */}
-      <div className="relative z-10 w-full flex flex-col md:flex-row items-center gap-10">
-        {/* Left Animated Image Section */}
+      <div className="max-w-7xl mx-auto px-6 relative z-10 grid grid-cols-1 lg:grid-cols-2 gap-20 items-center">
+        
+        {/* Left Side: Brand Message & Info */}
         <motion.div
           initial={{ opacity: 0, x: -50 }}
           whileInView={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.6 }}
-          className="w-full md:w-1/2 flex justify-center"
+          transition={{ duration: 1 }}
+          viewport={{ once: true }}
         >
-          <motion.img
-            src={Astra}
-            alt="Contact"
-            className="w-72 md:w-140 rounded-2xl shadow-lg object-cover"
-            animate={{ y: [0, -10, 0] }}
-            transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-          />
+          <div className="inline-block px-6 py-2 bg-brand-bg rounded-full border border-brand-accent/20 mb-8">
+            <span className="text-brand-primary font-bold text-sm uppercase tracking-[0.3em]">Direct Connection</span>
+          </div>
+          <h3 className="text-5xl md:text-6xl font-bold mb-10 text-brand-text leading-tight">
+            For Business <br />
+            <span className="text-brand-primary italic">& Personal</span> Inquiries
+          </h3>
+          <p className="text-xl text-brand-text/70 mb-14 font-medium leading-relaxed max-w-xl">
+            Whether you're looking for distribution opportunities or just want to share your favorite recipe with us, our team is ready to assist you.
+          </p>
+          
+          <div className="space-y-10">
+            <div className="flex items-center gap-8 group">
+              <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center text-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-brand-accent/10 text-brand-primary transition-transform group-hover:scale-110">
+                <FiMapPin />
+              </div>
+              <div>
+                <p className="text-xs font-bold text-brand-text/50 uppercase tracking-widest mb-1">Our Headquarters</p>
+                <p className="text-xl font-bold text-brand-text">SOI Spice of India House, Indore Pithampur 454775</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-8 group">
+              <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center text-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-brand-accent/10 text-brand-primary transition-transform group-hover:scale-110">
+                <FiPhone />
+              </div>
+              <div>
+                <p className="text-xs font-bold text-brand-text/50 uppercase tracking-widest mb-1">Call Our Team</p>
+                <p className="text-xl font-bold text-brand-text">+91 7772880295</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-8 group">
+              <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center text-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-brand-accent/10 text-brand-primary transition-transform group-hover:scale-110">
+                <FiMail />
+              </div>
+              <div>
+                <p className="text-xs font-bold text-brand-text/50 uppercase tracking-widest mb-1">Email Support</p>
+                <p className="text-xl font-bold text-brand-text">soiofficial@gmail.com</p>
+              </div>
+            </div>
+          </div>
         </motion.div>
 
-        {/* Right Side Contact Form */}
+        {/* Right Side: Contact Form */}
         <motion.div
-          initial={{ opacity: 0, x: 50 }}
-          whileInView={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.6 }}
-          className="w-full md:w-1/2 bg-white/5 p-8 rounded-2xl shadow-lg border border-white/10"
+          initial={{ opacity: 0, scale: 0.95 }}
+          whileInView={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 1 }}
+          viewport={{ once: true }}
+          className="bg-brand-bg/40 backdrop-blur-xl p-10 md:p-14 rounded-[3.5rem] shadow-[0_48px_100px_-20px_rgba(45,45,45,0.1)] border border-white/60"
         >
-          <h2 className="text-3xl font-bold mb-6">Let’s Work Together</h2>
-
-          <form className="flex flex-col gap-5" onSubmit={handleSubmit}>
-            {/* Name field */}
-            <div className="flex flex-col">
-              <label className="mb-1">
-                Name <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="text"
-                name="name"
-                placeholder="Your Name"
-                value={formData.name}
-                onChange={handleChange}
-                className={`p-3 rounded-md bg-white/10 border ${
-                  errors.name ? "border-red-500" : "border-gray-500"
-                } text-white focus:outline-none focus:border-blue-500`}
-              />
-              {errors.name && (
-                <p className="text-red-500 text-xs">{errors.name}</p>
-              )}
-            </div>
-
-            {/* Email field */}
-            <div className="flex flex-col">
-              <label className="mb-1">
-                Email <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="email"
-                name="email"
-                placeholder="Your Email"
-                value={formData.email}
-                onChange={handleChange}
-                className={`p-3 rounded-md bg-white/10 border ${
-                  errors.email ? "border-red-500" : "border-gray-500"
-                } text-white focus:outline-none focus:border-blue-500`}
-              />
-              {errors.email && (
-                <p className="text-red-500 text-xs">{errors.email}</p>
-              )}
-            </div>
-
-            {/* Service dropdown */}
-            <div className="flex flex-col">
-              <label className="mb-1">
-                Service Needed <span className="text-red-500">*</span>
-              </label>
-
-              <select
-                name="service"
-                value={formData.service}
-                onChange={handleChange}
-                className={`p-3 rounded-md bg-white/10 border ${
-                  errors.service ? "border-red-500" : "border-gray-500"
-                } focus:outline-none focus:border-blue-500`}
-              >
-                <option value="" disabled>
-                  Something in mind?
-                </option>
-                <option value="Web Development" className="text-black">
-                  Web Development
-                </option>
-                <option value="Mobile Application" className="text-black">
-                  Mobile Application
-                </option>
-                <option value="Others" className="text-black">
-                  Others
-                </option>
-              </select>
-
-              {errors.service && (
-                <p className="text-red-500 text-xs">{errors.service}</p>
-              )}
-            </div>
-
-            {/* Budget field */}
-            {formData.service && formData.service !== "other" && (
-              <div className="flex flex-col">
-                <label className="mb-1">
-                  Budget <span className="text-red-500">*</span>
-                </label>
-
+          <form className="space-y-8" onSubmit={handleSubmit}>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <div className="relative group">
+                <label className="block text-xs font-bold uppercase tracking-widest text-brand-text/40 mb-3 ml-1">Full Name</label>
                 <input
-                  type="text"
-                  name="budget"
-                  placeholder="Your Budget"
-                  value={formData.budget}
-                  onChange={handleChange}
-                  className={`p-3 rounded-md bg-white/10 border ${
-                    errors.budget ? "border-red-500" : "border-gray-500"
-                  } text-white focus:outline-none focus:border-blue-500`}
+                  type="text" name="name" value={formData.name} onChange={handleChange}
+                  placeholder="John Doe"
+                  className="w-full p-5 rounded-2xl bg-white border border-transparent shadow-sm focus:ring-2 focus:ring-brand-primary outline-none transition-all placeholder:text-brand-text/20 font-medium"
                 />
-
-                {errors.budget && (
-                  <p className="text-red-500 text-xs">{errors.budget}</p>
-                )}
               </div>
-            )}
-
-            {/* Idea textarea */}
-            <div className="flex flex-col">
-              <label className="mb-1">
-                Idea <span className="text-red-500">*</span>
-              </label>
-
-              <textarea
-                name="idea"
-                rows={5}
-                placeholder="Enter your idea"
-                value={formData.idea}
-                onChange={handleChange}
-                className={`p-3 rounded-md bg-white/10 border ${
-                  errors.idea ? "border-red-500" : "border-gray-500"
-                } text-white focus:outline-none focus:border-blue-500`}
-              />
-
-              {errors.idea && (
-                <p className="text-red-500 text-xs">{errors.idea}</p>
-              )}
+              <div className="relative group">
+                <label className="block text-xs font-bold uppercase tracking-widest text-brand-text/40 mb-3 ml-1">Email Address</label>
+                <input
+                  type="email" name="email" value={formData.email} onChange={handleChange}
+                  placeholder="john@example.com"
+                  className="w-full p-5 rounded-2xl bg-white border border-transparent shadow-sm focus:ring-2 focus:ring-brand-primary outline-none transition-all placeholder:text-brand-text/20 font-medium"
+                />
+              </div>
             </div>
 
-            {/* Status message */}
-            {status && (
-              <p
-                className={`text-sm ${
-                  status === "success"
-                    ? "text-green-400"
-                    : status === "error"
-                      ? "text-red-400"
-                      : "text-yellow-400"
-                }`}
-              >
-                {status === "sending"
-                  ? "Sending..."
-                  : status === "success"
-                    ? "Message sent successfully ✅"
-                    : "Something went wrong ❌"}
-              </p>
-            )}
+            <div>
+              <label className="block text-xs font-bold uppercase tracking-widest text-brand-text/40 mb-3 ml-1">Inquiry Type</label>
+              <div className="relative">
+                <select
+                  name="type" value={formData.type} onChange={handleChange}
+                  className="w-full p-5 rounded-2xl bg-white border border-transparent shadow-sm focus:ring-2 focus:ring-brand-primary outline-none transition-all appearance-none font-medium text-brand-text/70"
+                >
+                  <option value="">Select an option</option>
+                  <option value="distributor">Distributorship Inquiry</option>
+                  <option value="feedback">Product Feedback</option>
+                  <option value="career">Career Opportunities</option>
+                  <option value="other">Other</option>
+                </select>
+                <div className="absolute right-5 top-1/2 -translate-y-1/2 pointer-events-none text-brand-text/30">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" /></svg>
+                </div>
+              </div>
+            </div>
 
-            {/* Submit button */}
+            <div>
+              <label className="block text-xs font-bold uppercase tracking-widest text-brand-text/40 mb-3 ml-1">Message</label>
+              <textarea
+                name="message" value={formData.message} onChange={handleChange} rows={5}
+                placeholder="How can we help you today?"
+                className="w-full p-5 rounded-2xl bg-white border border-transparent shadow-sm focus:ring-2 focus:ring-brand-primary outline-none transition-all resize-none placeholder:text-brand-text/20 font-medium"
+              />
+            </div>
+
             <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
+              whileHover={{ scale: 1.02, backgroundColor: "#8B0000" }}
+              whileTap={{ scale: 0.98 }}
               disabled={status === "sending"}
               type="submit"
-              className="
-                bg-blue-600 
-                hover:bg-blue-700 
-                disabled:opacity-60 
-                text-white 
-                py-3 
-                rounded-md 
-                font-semibold 
-                transition
-              "
+              className="w-full py-6 bg-brand-primary text-white rounded-2xl font-black text-sm uppercase tracking-[0.3em] shadow-[0_20px_40px_rgba(165,42,42,0.3)] transition-all flex items-center justify-center gap-4"
             >
-              {status === "sending" ? "Sending..." : "Send Message"}
+              {status === "sending" ? "Processing..." : (
+                <>
+                  Submit Inquiry <FiSend className="text-xl" />
+                </>
+              )}
             </motion.button>
+
+            {status && (
+              <motion.p 
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className={`text-center font-bold flex items-center justify-center gap-2 ${status === "success" ? "text-green-600" : "text-red-600"}`}
+              >
+                {status === "success" ? "✨ Your inquiry has been sent!" : "System error. Please try again later."}
+              </motion.p>
+            )}
           </form>
         </motion.div>
       </div>

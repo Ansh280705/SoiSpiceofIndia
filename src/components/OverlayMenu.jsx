@@ -24,11 +24,10 @@ export default function OverlayMenu({ isOpen, onClose }) {
           <ul className="space-y-6 text-center">
             {[
               "Home",
+              "Products",
+              "Recipes",
+              "Quality",
               "About",
-              "Skills",
-              "Projects",
-              "Experience",
-              "Testimonials",
               "Contact",
             ].map((item, index) => (
               <motion.li
@@ -40,7 +39,7 @@ export default function OverlayMenu({ isOpen, onClose }) {
                 <a
                   href={`#${item.toLowerCase()}`}
                   onClick={onClose}
-                  className="text-4xl text-white font-semibold hover:text-purple-500 transition-colors-300"
+                  className="text-4xl text-white font-semibold hover:text-brand-secondary transition-colors duration-300"
                 >
                   {item}
                 </a>

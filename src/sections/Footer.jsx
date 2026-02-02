@@ -1,125 +1,113 @@
-// src/components/Footer.jsx
 import React from "react";
 import { motion } from "framer-motion";
-import { FaLinkedinIn, FaInstagram, FaGithub } from "react-icons/fa6";
+import { FaLinkedinIn, FaInstagram, FaFacebookF, FaYoutube } from "react-icons/fa6";
 
-/**
- * Social media links configuration
- * - Each object represents a platform
- * - Replace `href` with your own profile links
- * - Add/remove items if you want more or fewer social platforms
- */
 const socials = [
   {
-    Icon: FaLinkedinIn,
-    label: "LinkedIn",
-    href: "https://www.linkedin.com/in/ansh-rathore-367a13272",
+    Icon: FaFacebookF,
+    label: "Facebook",
+    href: "#",
   },
   {
     Icon: FaInstagram,
     label: "Instagram",
-    href: "https://www.instagram.com/28_07ansh/",
+    href: "#",
   },
   {
-    Icon: FaGithub,
-    label: "GitHub",
-    href: "https://github.com/Ansh280705",
+    Icon: FaYoutube,
+    label: "YouTube",
+    href: "#",
+  },
+  {
+    Icon: FaLinkedinIn,
+    label: "LinkedIn",
+    href: "#",
   },
 ];
 
-/**
- * Framer Motion variants for hover/tap glow effects
- * - Initial: normal state
- * - Hover: scale up, lift slightly, and glow with neon shadows
- * - Tap: slightly shrink when clicked/tapped
- */
-const glowVariants = {
-  initial: { scale: 1, y: 0, filter: "drop-shadow(0 0 0 rgba(0,0,0,0))" },
-  hover: {
-    scale: 1.2,
-    y: -3,
-    filter:
-      "drop-shadow(0 0 8px rgba(13,88,204,0.9)) drop-shadow(0 0 18px rgba(16,185,129,0.8))",
-    transition: { type: "spring", stiffness: 300, damping: 15 },
-  },
-  tap: { scale: 0.95, y: 0, transition: { duration: 0.08 } },
-};
-
 const Footer = () => {
   return (
-    <footer className="relative overflow-hidden bg-black">
-      {/* --- Background neon gradient effects --- */}
-      {/* Blue glow overlay (top-right side) */}
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(55%_60%_at_70%_35%,rgba(13,88,204,0.35),transparent_70%)]" />
-      {/* Green glow overlay (bottom-left side) */}
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(50%_55%_at_30%_70%,rgba(16,185,129,0.30),transparent_70%)]" />
+    <footer className="bg-brand-text text-white relative overflow-hidden">
+      {/* Subtle background texture or overlay */}
+      <div className="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]"></div>
 
-      {/* --- Main Footer Content --- */}
-      <motion.div
-        initial={{ opacity: 0, y: 30 }} // Start faded & lowered
-        whileInView={{ opacity: 1, y: 0 }} // Animate when scrolled into view
-        transition={{ duration: 0.8 }}
-        className="relative z-10 px-4 sm:px-6 md:px-8 lg:px-10 py-16 md:py-20 flex flex-col items-center text-center space-y-6"
-      >
-        {/* --- Personal Name / Branding --- */}
-        {/* Change text to your name or brand */}
-        <div className="w-full">
-          <h1
-            className="font-bangers font-semibold leading-none text-white text-center select-none"
-            style={{
-              fontSize: "clamp(3rem, 5vw, 14rem)", // Responsive scaling
-              letterSpacing: "0.02em",
-              lineHeight: 0.9,
-              paddingLeft: "3vw",
-              paddingRight: "3vw",
-              whiteSpace: "nowrap",
-              textShadow: "0 2px 18px rgba(0,0,0,0.45)",
-            }}
-          >
-            Ansh Rathore
-          </h1>
+      <div className="relative z-10 max-w-7xl mx-auto px-6 py-16 md:py-24">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-16">
+          
+          {/* Brand Info */}
+          <div className="lg:col-span-1">
+            <h2 className="text-3xl font-bold mb-6 text-brand-secondary">
+              SOI <span className="text-white">Spice of India</span>
+            </h2>
+            <p className="text-gray-400 leading-relaxed mb-8">
+              Bringing authentic flavors to your kitchen for over 10 years. Purity, taste, and tradition in every pinch.
+            </p>
+            <div className="flex gap-4">
+              {socials.map(({ Icon, label, href }) => (
+                <a
+                  key={label}
+                  href={href}
+                  className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-brand-primary transition-colors duration-300"
+                  aria-label={label}
+                >
+                  <Icon className="text-lg" />
+                </a>
+              ))}
+            </div>
+          </div>
+
+          {/* Quick Links */}
+          <div>
+            <h4 className="text-lg font-bold mb-6 uppercase tracking-widest text-brand-primary">Quick Links</h4>
+            <ul className="space-y-4 text-gray-400 font-medium">
+              <li><a href="#home" className="hover:text-white transition-colors">Home</a></li>
+              <li><a href="#products" className="hover:text-white transition-colors">Products</a></li>
+              <li><a href="#recipes" className="hover:text-white transition-colors">Recipes</a></li>
+              <li><a href="#about" className="hover:text-white transition-colors">About Us</a></li>
+            </ul>
+          </div>
+
+          {/* Categories */}
+          <div>
+            <h4 className="text-lg font-bold mb-6 uppercase tracking-widest text-brand-primary">Categories</h4>
+            <ul className="space-y-4 text-gray-400 font-medium">
+              <li><a href="#" className="hover:text-white transition-colors">Pure Spices</a></li>
+              <li><a href="#" className="hover:text-white transition-colors">Blended Spices</a></li>
+              <li><a href="#" className="hover:text-white transition-colors">Exotic Herbs</a></li>
+              <li><a href="#" className="hover:text-white transition-colors">Aromatic Seeds</a></li>
+            </ul>
+          </div>
+
+          {/* Contact Info */}
+          <div>
+            <h4 className="text-lg font-bold mb-6 uppercase tracking-widest text-brand-primary">Contact Us</h4>
+            <ul className="space-y-4 text-gray-400 font-medium text-sm">
+              <li className="flex gap-3 text-gray-400">
+                <span className="text-brand-primary">📍</span>
+                SOI Spice of India House, <br />Indore Pithampur 454775
+              </li>
+              <li className="flex gap-3 text-gray-400">
+                <span className="text-brand-primary">📞</span>
+                +91 7772880295
+              </li>
+              <li className="flex gap-3 text-gray-400">
+                <span className="text-brand-primary">✉️</span>
+                soiofficial@gmail.com
+              </li>
+            </ul>
+          </div>
+
         </div>
 
-        {/* --- Accent underline --- */}
-        {/* Decorative gradient line under name */}
-        <div className="h-[3px] w-24 md:w-32 rounded-full bg-gradient-to-r from-[#0D58CC] via-cyan-300 to-emerald-400" />
-
-        {/* --- Social Media Links --- */}
-        {/* Icons mapped dynamically from `socials` array */}
-        <div className="flex gap-5 text-2xl md:text-3xl">
-          {socials.map(({ Icon, label, href }) => (
-            <motion.a
-              key={label}
-              href={href}
-              aria-label={label} // Accessible label
-              target="_blank"
-              rel="noopener noreferrer"
-              variants={glowVariants}
-              initial="initial"
-              whileHover="hover"
-              whileTap="tap"
-              className="text-gray-300 transition-colors duration-200"
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-            >
-              <Icon /> {/* Icon for each social */}
-            </motion.a>
-          ))}
+        {/* Bottom Bar */}
+        <div className="pt-8 border-t border-white/10 flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-gray-500 font-medium">
+          <p>© {new Date().getFullYear()} SOI Spice of India. All rights reserved.</p>
+          <div className="flex gap-8">
+            <a href="#" className="hover:text-white ">Privacy Policy</a>
+            <a href="#" className="hover:text-white ">Terms of Service</a>
+          </div>
         </div>
-
-        {/* --- Personal Quote / Tagline --- */}
-        {/* Replace this with your favorite quote or brand message */}
-        {/* <p className="text-gray-300 italic max-w-xl">“”</p> */}
-
-        {/* --- Copyright / Trademark --- */}
-        {/* Auto-updates year dynamically */}
-        <p className="text-xs text-gray-400">
-          © {new Date().getFullYear()} Ansh Rathore All rights reserved.
-        </p>
-      </motion.div>
+      </div>
     </footer>
   );
 };

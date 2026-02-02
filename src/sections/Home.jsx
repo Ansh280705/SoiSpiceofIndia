@@ -1,37 +1,29 @@
-import ParticlesBackground from "../components/ParticlesBackground";
 import React, { useMemo, useState, useEffect } from "react";
-import { motion } from "framer-motion";
-import { FaGithub, FaLinkedin } from "react-icons/fa";
-import avator from "../assets/avator.png";
+import { motion, AnimatePresence } from "framer-motion";
 
-const socials = [
-  {
-    Icon: FaGithub,
-    label: "Github",
-    href: "https://github.com/Ansh280705",
-  },
-  {
-    Icon: FaLinkedin,
-    label: "LinkedIn",
-    href: "https://www.linkedin.com/in/ansh-rathore-367a13272",
-  },
+import hero_bg from "../assets/hero_bg.png";
+import hero_slider_3 from "../assets/hero_slider_3.png";
+
+const SLIDE_DURATION = 6000;
+
+const slides = [
+  
+  { image: hero_bg, tagline: "Zero Adulteration. Real Taste." },
+  { image: hero_slider_3, tagline: "The World's Finest Organic Spices." }
 ];
 
-const Glowvariants = {
-  initial: { scale: 1, y: 0, filter: "drop-shadow(0 0 0 rgba(0,0,0,0))" },
-  hover: {
-    scale: 1.2,
-    y: -3,
-    filter:
-      "drop-shadow(0 0 8px rgba(13,88,204,0.9)) drop-shadow(0 0 18px rgba(16,185,129,0.8))",
-    transition: { type: "spring", stiffness: 300, damping: 15 },
-  },
-  tap: { scale: 0.95, y: 0, transition: { duration: 0.08 } },
-};
-
 export default function Home() {
+  const [currentSlide, setCurrentSlide] = useState(0);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentSlide((prev) => (prev + 1) % slides.length);
+    }, SLIDE_DURATION);
+    return () => clearInterval(timer);
+  }, []);
+
   const roles = useMemo(
-    () => ["Web Developer", "MERN Stack Developer", "Software Developer"],
+    () => ["100% Organic", "Zero Adulteration", "Farm to Kitchen", "Naturally Pure"],
     [],
   );
 
@@ -68,142 +60,98 @@ export default function Home() {
   return (
     <section
       id="home"
-      className="w-full h-screen relative bg-black overflow-hidden"
+      className="w-full h-screen relative overflow-hidden flex items-center justify-center bg-black"
     >
-      <ParticlesBackground />
+      <AnimatePresence mode="wait">
+        <motion.div 
+          key={currentSlide}
+          className="absolute inset-0 z-0"
+          initial={{ opacity: 0, scale: 1.05 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 1.5, ease: "easeInOut" }}
+          style={{
+            backgroundImage: `url(${slides[currentSlide].image})`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+          }}
+        >
+          {/* Main Overlay - Lightened for 'Real' Colors */}
+          <div className="absolute inset-0 bg-black/30 backdrop-blur-[0.5px]"></div>
+        </motion.div>
+      </AnimatePresence>
 
-      <div className="absolute inset-0">
-        <div
-          className="
-            absolute -top-32 -left-32
-            w-[70vw] sm:w-[50vw] md:w-[40vw]
-            h-[70vw] sm:h-[50vw] md:h-[40vw]
-            max-w-[500px] max-h-[500px]
-            rounded-full
-            bg-gradient-to-r from-[#302b63] via-[#00b8f8] to-[#1c8dd2]
-            opacity-30 sm:opacity-20 md:opacity-10
-            blur-[100px] sm:blur-[130px] md:blur-[150px]
-            animate-pulse
-          "
-        ></div>
+      <div className="relative z-10 text-center px-4 max-w-5xl mx-auto">
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={currentSlide + "tag"}
+            className="mb-4 text-brand-secondary text-xl md:text-2xl font-bold tracking-[0.2em] uppercase italic"
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 10 }}
+            transition={{ duration: 0.8 }}
+          >
+            {slides[currentSlide].tagline}
+          </motion.div>
+        </AnimatePresence>
 
-        <div
-          className="
-            absolute bottom-0 right-0 
-            w-[70vw] sm:w-[50vw] md:w-[40vw]
-            h-[70vw] sm:h-[50vw] md:h-[40vw]
-            max-w-[500px] max-h-[500px]
-            rounded-full
-            bg-gradient-to-r from-[#302b63] via-[#00b8f8] to-[#1c8dd2]
-            opacity-30 sm:opacity-20 md:opacity-10
-            blur-[100px] sm:blur-[130px] md:blur-[150px]
-            animate-pulse
-            delay-500
-          "
-        ></div>
+        <motion.h1
+          className="text-5xl sm:text-7xl md:text-8xl lg:text-9xl font-bold text-white leading-tight"
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 1, delay: 0.2 }}
+        >
+          Real Spices <br />
+          <span className="bg-gradient-to-r from-brand-secondary via-brand-accent to-brand-primary bg-clip-text text-transparent drop-shadow-[0_2px_15px_rgba(230,184,0,0.5)]">Real Purity</span>
+        </motion.h1>
 
-        <div className="relative z-10 h-full w-full max-w-7xl mx-auto px-4 grid grid-cols-1 lg:grid-cols-2">
-          <div className="flex flex-col justify-center h-full text-center lg:text-left relative">
-            <div className="w-full lg:pr-24 mx-auto max-w-[48rem]">
-              <motion.div
-                className="mb-3 text-3xl sm:text-2xl md:text-3xl lg:text-4xl font-semibold text-white tracking-wide min-h-[1.6em]"
-                initial={{ opacity: 0, y: 12 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6 }}
-              >
-                <span>{roles[index].substring(0, subIndex)}</span>
-                <span
-                  className="inline-block w-[2px] ml-1 bg-white animate-pulse align-middle"
-                  style={{ height: "1em" }}
-                ></span>
-              </motion.div>
+        <motion.div
+          className="mt-6 text-2xl md:text-3xl text-brand-secondary font-bold h-10"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.6, delay: 0.5 }}
+        >
+          <span className="text-white opacity-80 mr-2">Experience</span>
+          <span className="text-brand-secondary drop-shadow-sm">{roles[index].substring(0, subIndex)}</span>
+          <span className="inline-block w-[3px] ml-1 bg-brand-primary animate-pulse h-[1em] align-middle"></span>
+        </motion.div>
 
-              <motion.h1
-                className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-transparent bg-clip-text
-                bg-gradient-to-r from-[#1cd8a2] via-[#00bf8f] to-[#302b63] drop-shadow-lg"
-                initial={{ opacity: 0, y: 40 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 1 }}
-              >
-                Hello I'm
-                <br />
-                <span className="text-white font-bold text-5xl sm:text-6xl md:text-7xl lg:text-8xl lg:whitespace-nowrap">
-                  Ansh Rathore
-                </span>
-              </motion.h1>
+        <motion.p
+          className="mt-8 text-lg md:text-xl text-brand-bg/95 max-w-3xl mx-auto font-medium leading-relaxed"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.8, duration: 1 }}
+        >
+          {/* At <span className="text-brand-secondary font-bold">SOI Spice of India</span>, we offer the world's best spices, 
+          sourced 100% naturally from trusted farms. No additives, no colors, and absolutely 
+          <span className="text-brand-primary font-bold"> zero adulteration (No Milwat)</span>. 
+          Just the raw, vibrant power of nature in every pinch. */}
+        </motion.p>
 
-              <motion.p
-                className="mt-6 text-base sm:text-lg md:text-xl text-gray-300 max-w-2xl mx-auto lg:mx-0"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.4, duration: 0.8 }}
-              >
-                I craft scalable web applications using modern technologies,
-                blending performance with clean and intuitive design.
-              </motion.p>
+        <motion.div
+          className="mt-12 flex flex-col sm:flex-row items-center justify-center gap-6"
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 1, duration: 0.8 }}
+        >
+          <a
+            href="#products"
+            className="px-10 py-4 rounded-full font-bold text-lg text-white bg-brand-primary shadow-[0_15px_30px_-10px_rgba(165,42,42,0.5)] hover:bg-brand-primary/90 hover:scale-105 transition-all w-full sm:w-auto uppercase tracking-widest"
+          >
+            Explore Purity
+          </a>
 
-              <motion.div
-                className="mt-10 flex flex-wrap items-center justify-center lg:justify-start gap-6"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.8, duration: 0.8 }}
-              >
-                <a
-                  href="#projects"
-                  className="px-6 py-3 rounded-full font-medium text-lg text-white bg-gradient-to-r from-[#1cd8d2] via-[#00bf8f] to-[#302b63]
-                  shadow-lg hover:scale-105 transition-all"
-                >
-                  View My Work
-                </a>
-
-                <a
-                  href="/Ansh_Resume.pdf"
-                  download="AnshResume.pdf"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="px-6 py-3 rounded-full text-lg font-medium text-black bg-white hover:bg-gray-200 shadow-lg hover:scale-105 transition-all"
-                >
-                  My Resume
-                </a>
-              </motion.div>
-
-              <div className="mt-10 flex gap-5 text-2xl md:text-3xl justify-center lg:justify-start">
-                {socials.map(({ Icon, label, href }) => (
-                  <motion.a
-                    key={label}
-                    href={href}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    aria-label={label}
-                    variants={Glowvariants}
-                    initial="initial"
-                    whileHover="hover"
-                    whileTap="tap"
-                    className="text-gray-300"
-                  >
-                    <Icon />
-                  </motion.a>
-                ))}
-              </div>
-            </div>
-          </div>
-          <div className="relative hidden lg:block">
-            <motion.img
-              src={avator}
-              alt="Ansh Rathore"
-              className="absolute top-1/2 -translate-y-1/2 object-contain slect-none pointer-events-none"
-              style={{
-                right: "-30px",
-                width: "min(45vw ,780px)",
-                height: "90vh",
-              }}
-              initial={{ opacity: 0, x: 40, scale: 0.98 }}
-              animate={{ opacity: 1, x: 0, scale: 1 }}
-              transition={{ delay: 0.2, duration: 0.8 }}
-            />
-          </div>
-        </div>
+          <a
+            href="#recipes"
+            className="px-10 py-4 rounded-full text-lg font-bold text-brand-text bg-white/90 backdrop-blur-sm hover:bg-white shadow-2xl hover:scale-105 transition-all w-full sm:w-auto border-2 border-transparent hover:border-brand-primary/20"
+          >
+            Organic Recipes
+          </a>
+        </motion.div>
       </div>
+
+      {/* Aesthetic Bottom Fade */}
+      <div className="absolute bottom-0 left-0 w-full h-32 bg-gradient-to-t from-brand-bg to-transparent z-10"></div>
     </section>
   );
 }

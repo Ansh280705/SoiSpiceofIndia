@@ -1,14 +1,41 @@
 @import "tailwindcss";
 
+@theme {
+  --color-brand-primary: #a52a2a; /* Deep Red/Auburn */
+  --color-brand-secondary: #e6b800; /* Golden Yellow */
+  --color-brand-accent: #f4a460; /* Sandy Brown/Orange */
+  --color-brand-bg: #fffbf0; /* Warm Cream/Rice */
+  --color-brand-text: #2d2d2d; /* Soft Charcoal */
+}
+
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Lato:wght@300;400;700;900&family=Great+Vibes&display=swap');
+
 body {
-  font-family: "Poppins", sans-serif;
+  font-family: "Lato", sans-serif;
+  background-color: var(--color-brand-bg);
+  color: var(--color-brand-text);
+  overflow-x: hidden;
 }
+
 h1,
-h2 {
-  font-family: "Roboto", sans-serif;
+h2,
+h3,
+h4 {
+  font-family: "Playfair Display", serif;
 }
+
 @layer utilities {
-  .gradient {
-    background: linear-gradient(-45deg, #302b63, #00bf8f, #1cd8d2);
+  .spice-gradient {
+    background: linear-gradient(-45deg, #a52a2a, #d2691e, #e6b800);
+  }
+  .text-shadow {
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+  }
+  .font-playfair {
+    font-family: "Playfair Display", serif;
+  }
+  .font-signature {
+    font-family: "Great Vibes", cursive;
   }
 }
+

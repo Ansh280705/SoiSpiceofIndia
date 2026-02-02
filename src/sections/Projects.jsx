@@ -1,39 +1,27 @@
 import React from "react";
 import { motion, useScroll, AnimatePresence } from "framer-motion";
-// motion: for animating elements
-// useScroll: to track scroll position
-// AnimatePresence: to animate components when mounting/unmounting
 
-// Importing project images (desktop & mobile versions)
-import img1 from "../assets/img1.JPG";
-import img2 from "../assets/img2.JPG";
-import img3 from "../assets/img3.JPG";
-import photo1 from "../assets/photo1.jpg";
-import photo2 from "../assets/photo2.PNG";
-import photo3 from "../assets/photo3.png";
+import anugraha_range from "../assets/anugraha_hero.jpg";
+import red_chilli_signature from "../assets/red_chilli_signature.jpg";
+import turmeric_signature from "../assets/turmeric_signature.jpg";
+import coriander_signature from "../assets/coriander_signature.jpg";
 
 const MH3 = motion.h3;
-// Shortcut for <motion.h3> for easier typing
 
-// 🔹 Custom Hook: Detects if screen size matches "mobile"
 const useIsMobile = (query = "(max-width: 639px)") => {
   const [isMobile, setIsMobile] = React.useState(
     typeof window !== "undefined" && window.matchMedia(query).matches,
-    // Checks if the screen width is <= 639px (mobile breakpoint)
   );
 
   React.useEffect(() => {
     if (typeof window === "undefined") return;
-    const mql = window.matchMedia(query); // Media query list
-    const handler = (e) => setIsMobile(e.matches); // Update state when query changes
+    const mql = window.matchMedia(query);
+    const handler = (e) => setIsMobile(e.matches);
     mql.addEventListener?.("change", handler) || mql.addListener(handler);
-    // Add correct event listener (modern OR fallback)
-
-    setIsMobile(mql.matches); // Initialize with current screen size
+    setIsMobile(mql.matches);
     return () =>
       mql.removeEventListener?.("change", handler) ||
       mql.removeListener(handler);
-    // Cleanup event listener
   }, [query]);
 
   return isMobile;
@@ -41,154 +29,143 @@ const useIsMobile = (query = "(max-width: 639px)") => {
 
 export default function Projects() {
   const isMobile = useIsMobile();
-  // Detect if the user is on a mobile screen
 
-  // 🔹 List of project objects (dynamic images based on screen size)
-  const projects = React.useMemo(
+  const products = React.useMemo(
     () => [
       {
-        title: "Doctor Desk",
-        link: "https://www.doctordesk.co.in/",
-        bgColor: "#0F3D3A",
-        image: isMobile ? photo1 : img1, // Mobile vs desktop image
+        title: "Red Chilli Powder",
+        description: "Experience the vibrant heat and deep red color of SOI Spice of India. 100% natural, ethically sourced chillies with absolutely zero adulteration.",
+        bgColor: "#fffbf0",
+        image: red_chilli_signature,
+        accent: "#a52a2a",
+      },
+      {
+        title: "Turmeric Powder",
+        description: "The golden essence of purity. Our turmeric is processed to retain its high curcumin content and natural aroma. No added colors or fillers.",
+        bgColor: "#fdf5e6",
+        image: turmeric_signature,
+        accent: "#d2691e",
+      },
+      {
+        title: "Coriander Powder",
+        description: "Lush, fragrant, and purely natural. SOI Spice of India Coriander Powder brings the authentic taste of tradition to every dish with zero milwat.",
+        bgColor: "#fffaf0",
+        image: coriander_signature,
+        accent: "#e6b800",
       },
     ],
-    [isMobile],
-    // Memoize to prevent recalculating unless screen size changes
+    [],
   );
 
   const sceneRef = React.useRef(null);
-  // Reference to the whole projects section (used for scroll tracking)
 
   const { scrollYProgress } = useScroll({
     target: sceneRef,
     offset: ["start start", "end end"],
-    // Scroll progress is 0 when section top hits viewport top and 1 at the end
   });
 
-  const thresholds = projects.map((_, i) => (i + 1) / projects.length);
-  // Array of thresholds to switch between projects as user scrolls
+  const thresholds = products.map((_, i) => (i + 1) / products.length);
   const [activeIndex, setActiveIndex] = React.useState(0);
-  // Keeps track of which project is currently active
 
-  // 🔹 Update activeIndex as user scrolls
   React.useEffect(() => {
     const unsubscribe = scrollYProgress.onChange((v) => {
       const idx = thresholds.findIndex((t) => v <= t);
-      // Find the first threshold that is greater than or equal to scroll progress
       setActiveIndex(idx === -1 ? thresholds.length - 1 : idx);
-      // If not found, show the last project
     });
     return () => unsubscribe();
-    // Cleanup scroll listener
   }, [scrollYProgress, thresholds]);
 
-  const activeProject = projects[activeIndex];
-  // Currently displayed project
+  const activeProduct = products[activeIndex];
 
   return (
     <section
-      id="projects"
+      id="products"
       ref={sceneRef}
-      className="relative text-white"
+      className="relative transition-colors duration-500"
       style={{
-        height: `${100 * projects.length}vh`,
-        // Section height = 100vh per project (makes scroll-based transitions work)
-        backgroundColor: activeProject.bgColor,
-        // Background changes color based on active project
-        transition: "background-color 400ms ease",
+        height: `${100 * products.length}vh`,
+        backgroundColor: activeProduct.bgColor,
       }}
     >
-      {/* Sticky container keeps content fixed while scrolling */}
-      <div className="sticky top-0 min-h-screen flex flex-col items-center justify-center">
-        {/* Section Title */}
-        <h2
-          className={`text-3xl font-semibold z-10 text-center ${isMobile ? "mt-4" : "mt-8"}`}
-        >
-          My Work
-        </h2>
+      <div className="sticky top-0 min-h-screen flex flex-col items-center justify-center overflow-hidden">
+        {/* Section Heading */}
+        <div className="absolute top-4 md:top-12 text-center z-30">
+          <h2 className="text-brand-primary text-4xl md:text-5xl font-signature mb-2">
+            Signature Range
+          </h2>
+          <div className="h-1 w-20 bg-brand-primary mx-auto rounded-full"></div>
+        </div>
 
-        {/* Main Project Display Area */}
-        <div
-          className={`relative w-full flex-1 flex items-center justify-center ${isMobile ? "-mt-4" : ""}`}
-        >
-          {projects.map((project, idx) => (
+        <div className="relative w-full flex-1 flex items-center justify-center">
+          {products.map((product, idx) => (
             <div
-              key={project.title}
-              className={`absolute top-[52%] left-1/2 -translate-x-1/2
- -translate-y-1/2 transition-all duration-500 ${
-   activeIndex === idx ? "opacity-100 z-20" : "opacity-0 z-0 sm:z-10"
- }`}
-              style={{ width: "85%", maxWidth: "1200px" }}
+              key={product.title}
+              className={`absolute inset-0 flex items-center justify-center transition-all duration-700 ease-in-out ${
+                activeIndex === idx ? "opacity-100 scale-100 z-20" : "opacity-0 scale-95 z-0 pointer-events-none"
+              }`}
             >
-              {/* Animate project title when switching */}
-              <AnimatePresence mode="wait">
-                {activeIndex === idx && (
-                  <MH3
-                    key={project.title}
-                    initial={{ opacity: 0, y: -30 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: 30 }}
-                    transition={{ duration: 0.5, ease: "easeOut" }}
-                    className={`block text-center text-[clamp(2rem,6vw,5rem)] text-white/95 sm:absolute sm:-top-21 sm:left-[35%] lg:left-[-5%] sm:mb-0 font-bangers italic font-semibold ${
-                      isMobile ? "-mt-25" : ""
-                    }`}
-                    style={{
-                      zIndex: 5,
-                      textAlign: isMobile ? "center" : "left",
-                    }}
-                  >
-                    {project.title}
-                  </MH3>
-                )}
-              </AnimatePresence>
+              <div className="max-w-7xl w-full mx-auto px-6 grid grid-cols-1 lg:grid-cols-2 items-center gap-12 mt-32 lg:mt-12">
+                
+                {/* Text Side */}
+                <div className="order-2 lg:order-1 text-center lg:text-left">
+                  <AnimatePresence mode="wait">
+                    {activeIndex === idx && (
+                      <motion.div
+                        initial={{ opacity: 0, x: -30 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: 30 }}
+                        transition={{ duration: 0.5 }}
+                      >
+                        <MH3 className="text-5xl md:text-7xl font-bold text-brand-primary mb-6">
+                          {product.title}
+                        </MH3>
+                        <p className="text-xl text-brand-text/70 mb-8 max-w-lg mx-auto lg:mx-0 font-medium">
+                          {product.description}
+                        </p>
+                        <motion.a
+                          href="#contact"
+                          whileHover={{ scale: 1.05 }}
+                          whileTap={{ scale: 0.95 }}
+                          className="inline-block bg-brand-primary text-white px-10 py-4 rounded-full font-bold shadow-xl hover:shadow-2xl transition-all cursor-pointer"
+                        >
+                          View Range
+                        </motion.a>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
 
-              {/* Project Image Wrapper */}
-              <div
-                className={`relative w-full overflow-hidden bg-black/20 shadow-2xl md:shadow-[0_35px_60px_-15px_rgba(0,0,0,0.7)] ${
-                  isMobile ? "mb-6 rounded-lg" : "mb-10 sm:mb-12 rounded-xl"
-                } h-[50vh] sm:h-[58vh]
-`}
-                style={{ zIndex: 10, transition: "box-shadow 250ms ease" }}
-              >
-                {/* Project Image */}
-                <img
-                  src={project.image}
-                  alt={project.title}
-                  className="w-full h-full object-cover drop-shadow-xl md:drop-shadow-2xl"
-                  style={{
-                    position: "relative",
-                    zIndex: 10,
-                    filter: "drop-shadow(0 16px 40px rgba(0,0,0,0.65))",
-                    transition: "filter 200ms ease",
-                  }}
-                  loading="lazy"
-                />
-                {/* Subtle gradient overlay for better readability */}
-                <div
-                  className="pointer-events-none absolute inset-0"
-                  style={{
-                    zIndex: 11,
-                    background:
-                      "linear-gradient(180deg, rgba(0,0,0,0.12) 0%, rgba(0,0,0,0) 40%)",
-                  }}
-                />
+                {/* Image Side */}
+                <div className="order-1 lg:order-2 flex justify-center">
+                  <motion.div
+                    className="relative w-full max-w-[500px] h-[350px] md:h-[500px] rounded-3xl overflow-hidden shadow-[0_30px_60px_-15px_rgba(165,42,42,0.4)] border-4 border-white"
+                    initial={{ opacity: 0, rotate: 5, scale: 0.9 }}
+                    animate={activeIndex === idx ? { opacity: 1, rotate: 0, scale: 1 } : {}}
+                    transition={{ duration: 0.8, delay: 0.2 }}
+                  >
+                    <img
+                      src={product.image}
+                      alt={product.title}
+                      className="w-full h-full object-cover"
+                      loading="lazy"
+                    />
+                  </motion.div>
+                </div>
               </div>
             </div>
           ))}
         </div>
 
-        {/* View Project Button */}
-        <div className={`absolute ${isMobile ? "bottom-20" : "bottom-10"}`}>
-          <a
-            href={activeProject?.link}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-block px-6 py-3 font-semibold rounded-lg bg-white text-black hover:bg-gray-200 transition-all"
-            aria-label={`View ${activeProject?.title}`}
-          >
-            View Project
-          </a>
+        {/* Progress Indicator */}
+        <div className="absolute right-10 top-1/2 -translate-y-1/2 flex flex-col gap-4 z-40">
+          {products.map((_, i) => (
+            <div
+              key={i}
+              className={`w-3 h-3 rounded-full border-2 border-brand-primary transition-all duration-300 ${
+                activeIndex === i ? "bg-brand-primary h-10" : "bg-transparent"
+              }`}
+            ></div>
+          ))}
         </div>
       </div>
     </section>
