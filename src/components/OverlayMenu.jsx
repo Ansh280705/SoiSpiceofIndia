@@ -25,6 +25,7 @@ export default function OverlayMenu({ isOpen, onClose }) {
             {[
               "Home",
               "Products",
+              "Order",
               "Recipes",
               "Quality",
               "About",

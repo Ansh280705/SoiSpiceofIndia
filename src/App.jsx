@@ -3,6 +3,7 @@ import Home from "./sections/Home";
 import OriginStory from "./sections/OriginStory";
 import About from "./sections/About";
 import Projects from "./sections/Projects";
+import OrderNow from "./sections/OrderNow";
 import Experience from "./sections/Experience";
 import Testimonials from "./sections/Testimonials";
 import Contact from "./sections/Contact";
@@ -18,6 +19,7 @@ export default function App() {
       <Home />
       <OriginStory />
       <Projects />
+      <OrderNow />
       <Testimonials />
       <Experience />
       <About />

@@ -95,6 +95,7 @@ export default function Navbar() {
           {[
             { name: "About Us", href: "#about" },
             { name: "Products", href: "#products" },
+            { name: "Order", href: "#order" },
             { name: "Recipes", href: "#recipes" },
             { name: "Quality", href: "#quality" },
             { name: "Contact", href: "#contact" },
