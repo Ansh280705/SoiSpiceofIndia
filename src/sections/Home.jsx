@@ -146,17 +146,17 @@ export default function Home() {
           transition={{ delay: 1, duration: 0.8 }}
         >
           <a
-            href="#products"
-            className="px-10 py-4 rounded-full font-bold text-lg text-white bg-brand-primary shadow-[0_15px_30px_-10px_rgba(165,42,42,0.5)] hover:bg-brand-primary/90 hover:scale-105 transition-all w-full sm:w-auto uppercase tracking-widest"
+            href="#order"
+            className="px-10 py-4 rounded-full font-bold text-lg text-white bg-brand-primary shadow-[0_15px_30px_-10px_rgba(165,42,42,0.5)] hover:bg-[#8B0000] hover:scale-105 transition-all w-full sm:w-auto uppercase tracking-widest"
           >
-            Explore Purity
+            Order Now
           </a>
 
           <a
-            href="#recipes"
+            href="#products"
             className="px-10 py-4 rounded-full text-lg font-bold text-brand-text bg-white/90 backdrop-blur-sm hover:bg-white shadow-2xl hover:scale-105 transition-all w-full sm:w-auto border-2 border-transparent hover:border-brand-primary/20"
           >
-            Organic Recipes
+            View Range
           </a>
         </motion.div>
       </div>

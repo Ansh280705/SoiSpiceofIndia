@@ -4,7 +4,7 @@ import emailjs from "@emailjs/browser";
 import { FiMail, FiPhone, FiMapPin, FiSend } from "react-icons/fi";
 
 const SERVICE_ID = import.meta.env.VITE_SERVICE_ID;
-const TEMPLATE_ID = import.meta.env.VITE_TEMPLATE_ID;
+const TEMPLATE_ID = import.meta.env.VITE_INQUIRY_TEMPLATE_ID;
 const PUBLIC_KEY = import.meta.env.VITE_PUBLIC_KEY;
 
 export default function Contact() {

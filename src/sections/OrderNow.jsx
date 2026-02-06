@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { FiPlus, FiMinus, FiCheckCircle, FiPackage, FiUser, FiPhone, FiMapPin, FiArrowLeft, FiShoppingCart } from "react-icons/fi";
+import { FiPlus, FiMinus, FiCheckCircle, FiPackage, FiUser, FiPhone, FiMapPin, FiArrowLeft, FiShoppingCart, FiMail } from "react-icons/fi";
 import emailjs from "@emailjs/browser";
 
 import red_chilli_signature from "../assets/red_chilli_signature.jpg";
@@ -8,7 +8,7 @@ import turmeric_signature from "../assets/turmeric_signature.jpg";
 import coriander_signature from "../assets/coriander_signature.jpg";
 
 const SERVICE_ID = import.meta.env.VITE_SERVICE_ID;
-const TEMPLATE_ID = import.meta.env.VITE_TEMPLATE_ID;
+const TEMPLATE_ID = import.meta.env.VITE_ORDER_TEMPLATE_ID;
 const PUBLIC_KEY = import.meta.env.VITE_PUBLIC_KEY;
 
 const products = [
@@ -45,6 +45,7 @@ export default function OrderNow() {
   
   const [customerInfo, setCustomerInfo] = useState({
     name: "",
+    email: "",
     phone: "",
     address: "",
   });
@@ -58,7 +59,7 @@ export default function OrderNow() {
 
   const handleOrderSubmit = async (e) => {
     e.preventDefault();
-    if (!customerInfo.name || !customerInfo.phone || !customerInfo.address) {
+    if (!customerInfo.name || !customerInfo.email || !customerInfo.phone || !customerInfo.address) {
       alert("Please fill in all details");
       return;
     }
@@ -78,13 +79,14 @@ export default function OrderNow() {
     try {
       const templateParams = {
         from_name: customerInfo.name,
+        customer_email: customerInfo.email,
         customer_phone: customerInfo.phone,
         customer_address: customerInfo.address,
         product_name: selectedProduct.name,
         weight: selectedWeight,
         quantity: quantity,
-        reply_to: "customer@example.com", 
-        message: `Order Details:\nProduct: ${selectedProduct.name}\nWeight: ${selectedWeight}\nQuantity: ${quantity}\n\nDeliver to:\n${customerInfo.address}\nPhone: ${customerInfo.phone}`
+        reply_to: customerInfo.email, 
+        message: `Order Details:\nProduct: ${selectedProduct.name}\nWeight: ${selectedWeight}\nQuantity: ${quantity}\n\nDeliver to:\n${customerInfo.address}\nPhone: ${customerInfo.phone}\nEmail: ${customerInfo.email}`
       };
 
       await emailjs.send(SERVICE_ID, TEMPLATE_ID, templateParams, PUBLIC_KEY);
@@ -102,7 +104,7 @@ export default function OrderNow() {
   const resetOrder = () => {
     setStep(1);
     setStatus("");
-    setCustomerInfo({ name: "", phone: "", address: "" });
+    setCustomerInfo({ name: "", email: "", phone: "", address: "" });
     setQuantity(1);
   };
 
@@ -268,6 +270,19 @@ export default function OrderNow() {
                           required
                           type="text" name="name" value={customerInfo.name} onChange={handleInputChange}
                           placeholder="John Doe"
+                          className="w-full pl-12 pr-5 py-4 rounded-xl bg-brand-bg/50 border border-transparent focus:bg-white focus:ring-2 focus:ring-brand-primary outline-none transition-all font-medium"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="relative">
+                      <label className="block text-xs font-bold uppercase tracking-widest text-brand-text/40 mb-3 ml-1">Email Address</label>
+                      <div className="relative">
+                        <FiMail className="absolute left-5 top-1/2 -translate-y-1/2 text-brand-text/30" />
+                        <input
+                          required
+                          type="email" name="email" value={customerInfo.email} onChange={handleInputChange}
+                          placeholder="john@example.com"
                           className="w-full pl-12 pr-5 py-4 rounded-xl bg-brand-bg/50 border border-transparent focus:bg-white focus:ring-2 focus:ring-brand-primary outline-none transition-all font-medium"
                         />
                       </div>
