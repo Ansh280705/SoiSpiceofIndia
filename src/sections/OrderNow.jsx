@@ -87,8 +87,7 @@ export default function OrderNow() {
     // Basic validation for keys
     if (!SERVICE_ID || !TEMPLATE_ID || !PUBLIC_KEY) {
       console.warn("EmailJS credentials missing. Falling back to success simulation for demo.");
-      // For demo purposes, we'll allow it to "succeed" if keys are missing
-      // so the user can see the success screen, but we'll also warn them.
+      alert("⚠️ Note: EmailJS keys were not detected in your .env file. The order will be simulated for demonstration, but NO EMAIL will be sent. \n\nIf you have added keys, please RESTART your dev server (npm run dev).");
       setStatus("success");
       setStep(3);
       return;
