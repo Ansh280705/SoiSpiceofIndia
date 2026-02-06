@@ -42,6 +42,18 @@ Copy and paste this into the **Email Body** (you can use HTML mode for a better 
       <td style="padding: 10px; border: 1px solid #ddd; font-weight: bold;">Quantity:</td>
       <td style="padding: 10px; border: 1px solid #ddd;">{{quantity}}</td>
     </tr>
+    <tr>
+      <td style="padding: 10px; border: 1px solid #ddd; font-weight: bold;">Subtotal:</td>
+      <td style="padding: 10px; border: 1px solid #ddd;">{{subtotal}}</td>
+    </tr>
+    <tr style="background-color: #f9f9f9;">
+      <td style="padding: 10px; border: 1px solid #ddd; font-weight: bold;">Delivery Fee:</td>
+      <td style="padding: 10px; border: 1px solid #ddd; color: #a52a2a;">+ {{delivery_fee}}</td>
+    </tr>
+    <tr>
+      <td style="padding: 10px; border: 1px solid #ddd; font-weight: bold; color: #a52a2a;">TOTAL AMOUNT:</td>
+      <td style="padding: 10px; border: 1px solid #ddd; font-weight: bold; color: #a52a2a;">{{total_price}}</td>
+    </tr>
     <tr style="background-color: #f9f9f9;">
       <td style="padding: 10px; border: 1px solid #ddd; font-weight: bold;">Phone Number:</td>
       <td style="padding: 10px; border: 1px solid #ddd;">{{customer_phone}}</td>
@@ -67,6 +79,9 @@ The website code sends these specific variables:
 - `{{product_name}}`: The selected spice.
 - `{{weight}}`: Packet size (50g/100g/250g).
 - `{{quantity}}`: Number of packets.
+- `{{subtotal}}`: Price of products before delivery (e.g., Rs 90).
+- `{{delivery_fee}}`: The fixed delivery fee (Rs 30).
+- `{{total_price}}`: The final total (Subtotal + Delivery).
 
 ---
 

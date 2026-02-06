@@ -18,6 +18,11 @@ const products = [
     image: red_chilli_signature,
     description: "Pure, vibrant, and ethically sourced. No artificial colors.",
     accent: "#a52a2a",
+    prices: {
+      "50g": 25,
+      "100g": 45,
+      "250g": 120
+    }
   },
   {
     id: "turmeric",
@@ -25,6 +30,11 @@ const products = [
     image: turmeric_signature,
     description: "Golden purity with high curcumin content. Natural health in every pinch.",
     accent: "#d2691e",
+    prices: {
+      "50g": 25,
+      "100g": 45,
+      "250g": 130
+    }
   },
   {
     id: "coriander",
@@ -32,10 +42,16 @@ const products = [
     image: coriander_signature,
     description: "Fragrant and earthy. Processed to keep the natural aroma intact.",
     accent: "#e6b800",
+    prices: {
+      "50g": 20,
+      "100g": 40,
+      "250g": 90
+    }
   },
 ];
 
 const weights = ["50g", "100g", "250g"];
+const DELIVERY_FEE = 30;
 
 export default function OrderNow() {
   const [step, setStep] = useState(1); // 1: Selection, 2: Checkout, 3: Success
@@ -51,6 +67,10 @@ export default function OrderNow() {
   });
 
   const [status, setStatus] = useState(""); // "", "sending", "success", "error"
+
+  const currentPrice = selectedProduct.prices[selectedWeight] || 0;
+  const subtotal = currentPrice * quantity;
+  const totalPrice = subtotal + DELIVERY_FEE;
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -85,8 +105,11 @@ export default function OrderNow() {
         product_name: selectedProduct.name,
         weight: selectedWeight,
         quantity: quantity,
+        subtotal: `Rs ${subtotal}`,
+        delivery_fee: `Rs ${DELIVERY_FEE}`,
+        total_price: `Rs ${totalPrice}`,
         reply_to: customerInfo.email, 
-        message: `Order Details:\nProduct: ${selectedProduct.name}\nWeight: ${selectedWeight}\nQuantity: ${quantity}\n\nDeliver to:\n${customerInfo.address}\nPhone: ${customerInfo.phone}\nEmail: ${customerInfo.email}`
+        message: `Order Details:\nProduct: ${selectedProduct.name}\nWeight: ${selectedWeight}\nQuantity: ${quantity}\nSubtotal: Rs ${subtotal}\nDelivery Fee: Rs ${DELIVERY_FEE}\nTotal Price: Rs ${totalPrice}\n\nDeliver to:\n${customerInfo.address}\nPhone: ${customerInfo.phone}\nEmail: ${customerInfo.email}`
       };
 
       await emailjs.send(SERVICE_ID, TEMPLATE_ID, templateParams, PUBLIC_KEY);
@@ -121,7 +144,7 @@ export default function OrderNow() {
           </div>
           <h2 className="text-4xl md:text-5xl font-bold text-brand-text mb-4">Order Successful!</h2>
           <p className="text-xl text-brand-text/60 mb-10 leading-relaxed">
-            Thank you, <span className="text-brand-primary font-bold">{customerInfo.name}</span>. We've received your order for {quantity}x {selectedProduct.name} ({selectedWeight}). Our team will contact you shortly at {customerInfo.phone} for delivery details.
+            Thank you, <span className="text-brand-primary font-bold">{customerInfo.name}</span>. We've received your order for {quantity}x {selectedProduct.name} ({selectedWeight}) for a total of <span className="text-brand-primary font-bold">Rs {totalPrice}</span>. Our team will contact you shortly at {customerInfo.phone} for delivery details.
           </p>
           <button 
             onClick={resetOrder}
@@ -206,13 +229,16 @@ export default function OrderNow() {
                             <button
                               key={w}
                               onClick={() => setSelectedWeight(w)}
-                              className={`px-6 py-2 rounded-full font-bold transition-all ${
+                              className={`px-6 py-2 rounded-xl font-bold transition-all flex flex-col items-center min-w-[100px] ${
                                 selectedWeight === w
-                                  ? "bg-brand-primary text-white"
-                                  : "bg-brand-bg text-brand-text hover:bg-brand-accent/10"
+                                  ? "bg-brand-primary text-white shadow-lg shadow-brand-primary/20"
+                                  : "bg-brand-bg text-brand-text hover:bg-brand-accent/10 border border-brand-accent/5"
                               }`}
                             >
-                              {w}
+                              <span>{w}</span>
+                              <span className={`text-[10px] mt-1 ${selectedWeight === w ? "text-white/80" : "text-brand-primary"}`}>
+                                Rs {selectedProduct.prices[w]}
+                              </span>
                             </button>
                           ))}
                         </div>
@@ -239,9 +265,10 @@ export default function OrderNow() {
 
                       <button
                         onClick={() => setStep(2)}
-                        className="w-full py-5 bg-brand-primary text-white rounded-2xl font-bold text-lg flex items-center justify-center gap-3 shadow-xl hover:shadow-2xl transition-all"
+                        className="w-full py-5 bg-brand-primary text-white rounded-2xl font-bold text-lg flex items-center justify-center gap-3 shadow-xl hover:shadow-2xl transition-all group"
                       >
-                        <FiShoppingCart /> Next: Delivery Details
+                        <FiShoppingCart className="group-hover:scale-110 transition-transform" /> 
+                        Next: Checkout (Rs {totalPrice})
                       </button>
                     </div>
                   </div>
@@ -314,11 +341,24 @@ export default function OrderNow() {
                       </div>
                     </div>
 
-                    <div className="bg-brand-bg/30 p-4 rounded-2xl mb-6">
-                      <p className="text-xs font-bold text-brand-text/40 uppercase tracking-widest mb-2">Order Summary</p>
-                      <p className="text-lg font-bold text-brand-text">
-                        {quantity}x {selectedProduct.name} ({selectedWeight})
-                      </p>
+                    <div className="bg-brand-primary/5 p-6 rounded-3xl mb-8 border border-brand-primary/10">
+                      <p className="text-xs font-bold text-brand-text/40 uppercase tracking-widest mb-3">Order Breakout</p>
+                      <div className="space-y-2">
+                        <div className="flex justify-between text-sm">
+                          <span className="text-brand-text/60">{selectedProduct.name} ({quantity}x {selectedWeight})</span>
+                          <span className="font-bold">Rs {subtotal}</span>
+                        </div>
+                        <div className="flex justify-between text-sm">
+                          <span className="text-brand-text/60">Delivery Fee</span>
+                          <span className="font-bold text-brand-primary">+ Rs {DELIVERY_FEE}</span>
+                        </div>
+                        <div className="pt-2 mt-2 border-t border-brand-primary/10 flex justify-between items-end">
+                          <p className="text-lg font-bold text-brand-text">Final Total</p>
+                          <p className="text-3xl font-black text-brand-primary">
+                            Rs {totalPrice}
+                          </p>
+                        </div>
+                      </div>
                     </div>
 
                     <button
