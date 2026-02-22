@@ -101,6 +101,13 @@ export default function OrderNow() {
     }
     // Reset selection after adding
     setQuantity(1);
+    
+    // Smooth transition to Checkout
+    setStatus("added");
+    setTimeout(() => {
+      setStatus("");
+      setStep(2);
+    }, 800);
   };
 
   const removeFromCart = (id) => {
@@ -236,6 +243,26 @@ export default function OrderNow() {
     <section id="order" className="py-24 bg-brand-bg relative overflow-hidden">
       <div className="max-w-7xl mx-auto px-6 relative z-10">
         <div className="text-center mb-16">
+          {/* Step Progress Indicator */}
+          <div className="flex justify-center items-center mb-12 gap-3 md:gap-4 overflow-hidden py-2">
+            {[1, 2, 3].map((s) => (
+              <React.Fragment key={s}>
+                <div className={`w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center font-bold transition-all duration-500 shadow-sm ${
+                  step >= s 
+                    ? "bg-brand-primary text-white scale-110 shadow-lg shadow-brand-primary/20" 
+                    : "bg-white text-brand-text/20 border border-brand-bg"
+                }`}>
+                  {step > s ? <FiCheckCircle /> : s}
+                </div>
+                {s < 3 && (
+                  <div className={`h-0.5 md:h-1 w-8 md:w-20 rounded-full transition-all duration-700 ${
+                    step > s ? "bg-brand-primary" : "bg-brand-bg"
+                  }`}></div>
+                )}
+              </React.Fragment>
+            ))}
+          </div>
+
           <motion.h2
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -347,11 +374,25 @@ export default function OrderNow() {
                       </div>
 
                       <button
+                        disabled={status === "added"}
                         onClick={addToCart}
-                        className="w-full py-4 bg-brand-primary text-white rounded-2xl font-bold text-lg flex items-center justify-center gap-3 shadow-xl hover:shadow-2xl transition-all group active:scale-95"
+                        className={`w-full py-4 rounded-2xl font-bold text-lg flex items-center justify-center gap-3 shadow-xl transition-all group active:scale-95 ${
+                          status === "added" 
+                            ? "bg-green-600 text-white" 
+                            : "bg-brand-primary text-white hover:shadow-2xl"
+                        }`}
                       >
-                        <FiShoppingCart className="group-hover:scale-110 transition-transform" /> 
-                        Add to Cart
+                        {status === "added" ? (
+                          <>
+                            <FiCheckCircle className="animate-bounce" />
+                            Added to Basket!
+                          </>
+                        ) : (
+                          <>
+                            <FiShoppingCart className="group-hover:scale-110 transition-transform" /> 
+                            Add & Go to Checkout
+                          </>
+                        )}
                       </button>
                     </div>
                   </div>
@@ -679,6 +720,15 @@ export default function OrderNow() {
                         className="w-full py-4 bg-brand-primary text-white rounded-2xl font-bold text-lg flex items-center justify-center gap-3 shadow-xl hover:shadow-2xl transition-all mt-4"
                       >
                         Checkout Now
+                      </button>
+                    )}
+
+                    {step > 1 && (
+                      <button
+                        onClick={() => setStep(1)}
+                        className="w-full py-3 border-2 border-brand-primary/20 text-brand-primary rounded-xl font-bold text-sm flex items-center justify-center gap-2 hover:bg-brand-primary/5 transition-all mt-4"
+                      >
+                        <FiPlus /> Add More Spices
                       </button>
                     )}
                   </div>
