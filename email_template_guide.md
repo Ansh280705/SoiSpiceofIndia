@@ -1,134 +1,111 @@
-# EmailJS Order Template Guide
+# Spice of India - New Order Template (EmailJS)
 
-To receive orders correctly from your website, please set up a new **Email Template** in your [EmailJS Dashboard](https://dashboard.emailjs.com/) with the following details.
+Copy and paste the HTML below into your EmailJS template editor. Make sure to use the **Design Editor** or **HTML Editor** (not just the text one) to see the full styling.
 
-## 1. Template Settings
-- **Service**: Ensure it's connected to your desired email provider (e.g., Gmail).
-- **Template Name**: `SOI Order Template` (or similar).
+## Email Subject:
+New Order Received - {{from_name}} ({{payment_uid}})
 
-## 2. Subject Line
-Copy and paste this into the **Subject** field:
-```text
-New Order Recieved: {{product_name}} from {{from_name}}
-```
-
-## 3. Email Body (Content)
-Copy and paste this into the **Email Body** (you can use HTML mode for a better look):
+## Email Body (HTML):
 
 ```html
-<div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; border: 1px solid #eee; padding: 20px; border-radius: 10px;">
-  <h2 style="color: #a52a2a; border-bottom: 2px solid #a52a2a; padding-bottom: 10px;">New Spice Order Received</h2>
-  
-  <p>You have received a new order from your website's <strong>Order Now</strong> section.</p>
-  
-  <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
-    <tr style="background-color: #f9f9f9;">
-      <td style="padding: 10px; border: 1px solid #ddd; font-weight: bold; width: 40%;">Customer Name:</td>
-      <td style="padding: 10px; border: 1px solid #ddd;">{{from_name}}</td>
-    </tr>
-    <tr>
-      <td style="padding: 10px; border: 1px solid #ddd; font-weight: bold;">Customer Email:</td>
-      <td style="padding: 10px; border: 1px solid #ddd;">{{customer_email}}</td>
-    </tr>
-    <tr style="background-color: #f9f9f9;">
-      <td style="padding: 10px; border: 1px solid #ddd; font-weight: bold;">Product:</td>
-      <td style="padding: 10px; border: 1px solid #ddd; color: #a52a2a; font-weight: bold;">{{product_name}}</td>
-    </tr>
-    <tr style="background-color: #f9f9f9;">
-      <td style="padding: 10px; border: 1px solid #ddd; font-weight: bold;">Weight:</td>
-      <td style="padding: 10px; border: 1px solid #ddd;">{{weight}}</td>
-    </tr>
-    <tr>
-      <td style="padding: 10px; border: 1px solid #ddd; font-weight: bold;">Quantity:</td>
-      <td style="padding: 10px; border: 1px solid #ddd;">{{quantity}}</td>
-    </tr>
-    <tr>
-      <td style="padding: 10px; border: 1px solid #ddd; font-weight: bold;">Subtotal:</td>
-      <td style="padding: 10px; border: 1px solid #ddd;">{{subtotal}}</td>
-    </tr>
-    <tr style="background-color: #f9f9f9;">
-      <td style="padding: 10px; border: 1px solid #ddd; font-weight: bold;">Delivery Fee:</td>
-      <td style="padding: 10px; border: 1px solid #ddd; color: #a52a2a;">+ {{delivery_fee}}</td>
-    </tr>
-    <tr>
-      <td style="padding: 10px; border: 1px solid #ddd; font-weight: bold; color: #a52a2a;">TOTAL AMOUNT:</td>
-      <td style="padding: 10px; border: 1px solid #ddd; font-weight: bold; color: #a52a2a;">{{total_price}}</td>
-    </tr>
-    <tr style="background-color: #f9f9f9;">
-      <td style="padding: 10px; border: 1px solid #ddd; font-weight: bold;">Phone Number:</td>
-      <td style="padding: 10px; border: 1px solid #ddd;">{{customer_phone}}</td>
-    </tr>
-  </table>
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+  body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; }
+  .wrapper { background-color: #fffbf0; padding: 20px; }
+  .container { max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 20px; overflow: hidden; border: 1px solid #e6b800; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+  .header { background-color: #a52a2a; color: #ffffff; padding: 30px; text-align: center; }
+  .header h1 { margin: 0; font-size: 24px; text-transform: uppercase; letter-spacing: 2px; }
+  .content { padding: 30px; }
+  .section-title { color: #a52a2a; font-weight: bold; font-size: 14px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; border-bottom: 1px solid #eee; padding-bottom: 5px; }
+  .detail-row { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 15px; }
+  .label { color: #888; font-weight: 500; }
+  .value { color: #333; font-weight: bold; text-align: right; }
+  .payment-box { background-color: #fff8e1; border: 1px dashed #e6b800; padding: 15px; border-radius: 10px; margin: 20px 0; text-align: center; }
+  .payment-uid { font-size: 18px; color: #a52a2a; font-weight: 900; letter-spacing: 2px; }
+  .order-table { width: 100%; margin-top: 15px; border-collapse: collapse; }
+  .order-table td { padding: 10px 0; border-bottom: 1px solid #f9f9f9; }
+  .total-row { background-color: #fcfcfc; padding: 15px; margin-top: 20px; border-radius: 10px; }
+  .grand-total { font-size: 22px; color: #a52a2a; font-weight: bold; }
+  .footer { text-align: center; padding: 20px; font-size: 12px; color: #999; }
+</style>
+</head>
+<body>
+<div class="wrapper">
+  <div class="container">
+    <div class="header">
+      <h1>New Order Received</h1>
+    </div>
+    
+    <div class="content">
+      <div class="section-title">Order Info</div>
+      <div class="detail-row">
+        <span class="label">Primary Customer</span>
+        <span class="value">{{from_name}}</span>
+      </div>
+      <div class="detail-row">
+        <span class="label">Email Address</span>
+        <span class="value">{{customer_email}}</span>
+      </div>
+      <div class="detail-row">
+        <span class="label">Phone Number</span>
+        <span class="value">{{customer_phone}}</span>
+      </div>
+      <div class="detail-row">
+        <span class="label">Alternate Phone</span>
+        <span class="value">{{alternate_phone}}</span>
+      </div>
 
-  <div style="margin-top: 20px; padding: 15px; background-color: #fffbf0; border-left: 5px solid #e6b800; border-radius: 5px;">
-    <h3 style="margin-top: 0; color: #2d2d2d;">Delivery Address:</h3>
-    <p style="white-space: pre-wrap; margin-bottom: 0;">{{customer_address}}</p>
+      <div class="section-title" style="margin-top:25px;">Delivery Address</div>
+      <div style="font-weight: bold; color: #333; margin-top: 10px; line-height: 1.4;">
+        {{customer_address}}
+      </div>
+
+      <div class="payment-box">
+        <div style="font-size: 12px; color: #888; text-transform: uppercase;">Payment Transaction UID</div>
+        <div class="payment-uid">{{payment_uid}}</div>
+      </div>
+
+      <div class="section-title">Order Details</div>
+      <div style="white-space: pre-line; background: #fdfdfd; padding: 15px; border-radius: 8px; font-family: monospace; font-size: 13px;">
+        {{order_details}}
+      </div>
+
+      <div class="footer-summary" style="margin-top: 30px; border-top: 2px solid #a52a2a; padding-top: 20px;">
+        <div class="detail-row">
+          <span class="label">Subtotal</span>
+          <span class="value">{{subtotal}}</span>
+        </div>
+        <div class="detail-row">
+          <span class="label">Delivery Fee</span>
+          <span class="value">{{delivery_fee}}</span>
+        </div>
+        <div class="detail-row" style="margin-top: 15px;">
+          <span class="label" style="font-size: 18px; color: #333;">Total Amount</span>
+          <span class="grand-total">{{total_price}}</span>
+        </div>
+      </div>
+
+      <div class="section-title" style="margin-top:30px;">Special Instructions</div>
+      <div style="font-style: italic; color: #666; font-size: 14px;">
+        "{{order_notes}}"
+      </div>
+    </div>
+    
+    <div class="footer">
+      This email was generated by Spice of India E-commerce Portal
+    </div>
   </div>
-
-  <p style="font-size: 12px; color: #777; margin-top: 30px; border-top: 1px solid #eee; padding-top: 10px;">
-    This email was automatically generated by SOI - Spice of India.
-  </p>
 </div>
+</body>
+</html>
 ```
 
-## 4. Why these placeholders?
-The website code sends these specific variables:
-- `{{from_name}}`: Customer's full name.
-- `{{customer_phone}}`: Contact number.
-- `{{customer_address}}`: Delivery address.
-- `{{product_name}}`: The selected spice.
-- `{{weight}}`: Packet size (50g/100g/250g).
-- `{{quantity}}`: Number of packets.
-- `{{subtotal}}`: Price of products before delivery (e.g., Rs 90).
-- `{{delivery_fee}}`: The fixed delivery fee (Rs 30).
-- `{{total_price}}`: The final total (Subtotal + Delivery).
-
----
-
-# 2. General Inquiry Template (Contact Section)
-
-Follow these steps for the **Contact Us** form inquiries.
-
-## 1. Subject Line
-```text
-New Website Inquiry: {{type}} from {{from_name}}
-```
-
-## 2. Email Body (Content)
-```html
-<div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; border: 1px solid #eee; padding: 20px; border-radius: 10px; border-top: 5px solid #a52a2a;">
-  <h2 style="color: #a52a2a; border-bottom: 2px solid #a52a2a; padding-bottom: 10px;">New Inquiry Received</h2>
-  
-  <p>You have received a new message through your website's <strong>Contact Section</strong>.</p>
-  
-  <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
-    <tr style="background-color: #f9f9f9;">
-      <td style="padding: 10px; border: 1px solid #ddd; font-weight: bold; width: 40%;">Name:</td>
-      <td style="padding: 10px; border: 1px solid #ddd;">{{from_name}}</td>
-    </tr>
-    <tr>
-      <td style="padding: 10px; border: 1px solid #ddd; font-weight: bold;">Email:</td>
-      <td style="padding: 10px; border: 1px solid #ddd;">{{reply_to}}</td>
-    </tr>
-    <tr style="background-color: #f9f9f9;">
-      <td style="padding: 10px; border: 1px solid #ddd; font-weight: bold;">Inquiry Type:</td>
-      <td style="padding: 10px; border: 1px solid #ddd; text-transform: capitalize;">{{type}}</td>
-    </tr>
-  </table>
-
-  <div style="margin-top: 20px; padding: 15px; background-color: #f8f8f8; border-radius: 5px; border: 1px solid #eee;">
-    <h3 style="margin-top: 0; color: #2d2d2d;">Message:</h3>
-    <p style="white-space: pre-wrap; margin-bottom: 0;">{{message}}</p>
-  </div>
-
-  <p style="font-size: 11px; color: #999; margin-top: 30px; text-align: center;">
-    This message was sent from the SOI website contact form.
-  </p>
-</div>
-```
-
-## 3. Placeholders Used
-- `{{from_name}}`: Sender's name.
-- `{{reply_to}}`: Sender's email.
-- `{{type}}`: Type of inquiry (e.g., Distributor, Feedback).
-- `{{message}}`: The full message content.
+## Setup Instructions:
+1. Log in to your **EmailJS Dashboard**.
+2. Go to **Email Templates**.
+3. Create a new template or edit your existing one.
+4. If there's an "Edit Code" or "HTML" button, click it and paste the code above.
+5. In the **Subject** line, paste: `New Order Received - {{from_name}} ({{payment_uid}})`
+6. In the **Auto-Reply** (optional), you can send a simpler version back to `{{customer_email}}`.

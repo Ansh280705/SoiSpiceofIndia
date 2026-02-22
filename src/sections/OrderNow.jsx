@@ -102,12 +102,11 @@ export default function OrderNow() {
     // Reset selection after adding
     setQuantity(1);
     
-    // Smooth transition to Checkout
+    // Show feedback
     setStatus("added");
     setTimeout(() => {
       setStatus("");
-      setStep(2);
-    }, 800);
+    }, 1500);
   };
 
   const removeFromCart = (id) => {
@@ -373,27 +372,40 @@ export default function OrderNow() {
                         </div>
                       </div>
 
-                      <button
-                        disabled={status === "added"}
-                        onClick={addToCart}
-                        className={`w-full py-4 rounded-2xl font-bold text-lg flex items-center justify-center gap-3 shadow-xl transition-all group active:scale-95 ${
-                          status === "added" 
-                            ? "bg-green-600 text-white" 
-                            : "bg-brand-primary text-white hover:shadow-2xl"
-                        }`}
-                      >
-                        {status === "added" ? (
-                          <>
-                            <FiCheckCircle className="animate-bounce" />
-                            Added to Basket!
-                          </>
-                        ) : (
-                          <>
-                            <FiShoppingCart className="group-hover:scale-110 transition-transform" /> 
-                            Add & Go to Checkout
-                          </>
-                        )}
-                      </button>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <button
+                          disabled={status === "added"}
+                          onClick={addToCart}
+                          className={`py-4 rounded-2xl font-bold text-lg flex items-center justify-center gap-3 shadow-xl transition-all group active:scale-95 ${
+                            status === "added" 
+                              ? "bg-green-600 text-white" 
+                              : "bg-white text-brand-primary border-2 border-brand-primary/20 hover:border-brand-primary"
+                          }`}
+                        >
+                          {status === "added" ? (
+                            <>
+                              <FiCheckCircle className="animate-bounce" />
+                              Added!
+                            </>
+                          ) : (
+                            <>
+                              <FiPlus className="group-hover:scale-110 transition-transform" /> 
+                              Add to Basket
+                            </>
+                          )}
+                        </button>
+
+                        <button
+                          onClick={() => setStep(2)}
+                          disabled={cart.length === 0 && status !== "added"}
+                          className={`py-4 rounded-2xl font-bold text-lg flex items-center justify-center gap-3 shadow-xl transition-all group active:scale-95 bg-brand-primary text-white hover:shadow-2xl ${
+                            cart.length === 0 && status !== "added" ? "opacity-50 cursor-not-allowed" : ""
+                          }`}
+                        >
+                          Go to Checkout
+                          <FiShoppingCart className="group-hover:translate-x-1 transition-transform" /> 
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </motion.div>
