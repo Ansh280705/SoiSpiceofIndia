@@ -11,6 +11,7 @@ import coriander_signature from "../assets/coriander_signature.jpg";
 const SERVICE_ID = import.meta.env.VITE_SERVICE_ID;
 const TEMPLATE_ID = import.meta.env.VITE_ORDER_TEMPLATE_ID;
 const PUBLIC_KEY = import.meta.env.VITE_PUBLIC_KEY;
+const RAZORPAY_KEY_ID = import.meta.env.VITE_RAZORPAY_KEY_ID;
 
 const products = [
   {
@@ -148,7 +149,9 @@ export default function OrderNow() {
     setStep(3); // Go to Payment
   };
 
-  const handleOrderSubmit = async () => {
+  const handleOrderSubmit = async (transactionId = null) => {
+    const finalPaymentUid = transactionId || paymentUid;
+
     // Basic validation for keys
     if (!SERVICE_ID || !TEMPLATE_ID || !PUBLIC_KEY) {
       console.warn("EmailJS credentials missing. Falling back to success simulation for demo.");
@@ -157,8 +160,8 @@ export default function OrderNow() {
       return;
     }
 
-    if (!paymentUid) {
-      alert("Please enter the Payment Transaction ID (UID) after completing the payment.");
+    if (!finalPaymentUid) {
+      alert("Payment verification failed. Please try again.");
       return;
     }
 
@@ -174,13 +177,13 @@ export default function OrderNow() {
         alternate_phone: customerInfo.alternatePhone || "N/A",
         customer_address: `${customerInfo.address}, ${customerInfo.landmark ? `Landmark: ${customerInfo.landmark}, ` : ""}${customerInfo.city}, ${customerInfo.state} - ${customerInfo.pincode}`,
         order_details: cartDetails,
-        payment_uid: paymentUid,
+        payment_uid: finalPaymentUid,
         subtotal: `Rs ${subtotal}`,
         delivery_fee: `Rs ${DELIVERY_FEE}`,
         total_price: `Rs ${totalPrice}`,
         order_notes: customerInfo.orderNotes || "No notes",
         reply_to: customerInfo.email, 
-        message: `Order Details:\n${cartDetails}\n\nSubtotal: Rs ${subtotal}\nDelivery Fee: Rs ${DELIVERY_FEE}\nTotal Price: Rs ${totalPrice}\n\nPayment UID: ${paymentUid}\n\nDeliver to:\n${customerInfo.name}\n${customerInfo.address}\nLandmark: ${customerInfo.landmark}\nCity: ${customerInfo.city}, State: ${customerInfo.state}\nPincode: ${customerInfo.pincode}\nPhone: ${customerInfo.phone}\nAlt Phone: ${customerInfo.alternatePhone}\n\nNotes: ${customerInfo.orderNotes}`
+        message: `Order Details:\n${cartDetails}\n\nSubtotal: Rs ${subtotal}\nDelivery Fee: Rs ${DELIVERY_FEE}\nTotal Price: Rs ${totalPrice}\n\nPayment UID: ${finalPaymentUid}\n\nDeliver to:\n${customerInfo.name}\n${customerInfo.address}\nLandmark: ${customerInfo.landmark}\nCity: ${customerInfo.city}, State: ${customerInfo.state}\nPincode: ${customerInfo.pincode}\nPhone: ${customerInfo.phone}\nAlt Phone: ${customerInfo.alternatePhone}\n\nNotes: ${customerInfo.orderNotes}`
       };
 
       await emailjs.send(SERVICE_ID, TEMPLATE_ID, templateParams, PUBLIC_KEY);
@@ -205,12 +208,48 @@ export default function OrderNow() {
       pincode: "", orderNotes: "" 
     });
     setQuantity(1);
+    setPaymentUid("");
   };
 
-  // UPI QR Generation
-  // upi://pay?pa=YOUR_UPI_ID@okicici&pn=Spice%20Of%20India&am=TOTAL_AMOUNT&cu=INR
-  const upiId = "9039734254@ybl"; 
-  const upiLink = `upi://pay?pa=${upiId}&pn=SoiSpiceofIndia&am=${totalPrice}&cu=INR&tn=Order%20Payment`;
+  const handleRazorpayPayment = () => {
+    if (!RAZORPAY_KEY_ID) {
+      alert("Razorpay Key is not configured. Please use UPI instead.");
+      return;
+    }
+
+    const options = {
+      key: RAZORPAY_KEY_ID,
+      amount: totalPrice * 100, // amount in the smallest currency unit (paise)
+      currency: "INR",
+      name: "Spice of India",
+      description: "Spice Order Payment",
+      image: "/favicon.svg",
+      handler: function (response) {
+        setPaymentUid(response.razorpay_payment_id);
+        handleOrderSubmit(response.razorpay_payment_id);
+      },
+      prefill: {
+        name: customerInfo.name,
+        email: customerInfo.email,
+        contact: customerInfo.phone,
+      },
+      notes: {
+        address: customerInfo.address,
+      },
+      theme: {
+        color: "#a52a2a",
+      },
+    };
+
+    const rzp = new window.Razorpay(options);
+    rzp.on("payment.failed", function (response) {
+      console.error(response.error);
+      alert("Payment Failed: " + response.error.description);
+    });
+    rzp.open();
+  };
+
+  // No longer using manual UPI QR
 
   if (step === 4) {
     return (
@@ -578,79 +617,33 @@ export default function OrderNow() {
                     <FiArrowLeft /> Back to Details
                   </button>
 
-                  <h3 className="text-2xl font-bold text-brand-text mb-2">Scan & Pay</h3>
+                  <h3 className="text-2xl font-bold text-brand-text mb-2">Final Step: Payment</h3>
                   <p className="text-brand-text/60 mb-8">Amount to Pay: <span className="text-brand-primary font-bold text-xl">Rs {totalPrice}</span></p>
 
-                  <div className="bg-brand-bg p-8 rounded-3xl inline-block mb-8 relative">
-                    <QRCodeSVG 
-                      value={upiLink} 
-                      size={200}
-                      level={"H"}
-                      includeMargin={false}
-                      className="mx-auto"
-                    />
-                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-5">
-                      <FiPackage size={100} />
+                  <div className="bg-brand-bg p-8 rounded-3xl inline-block mb-10 relative">
+                    <div className="w-24 h-24 bg-white rounded-2xl shadow-sm flex items-center justify-center text-brand-primary mx-auto mb-4">
+                      <FiCreditCard size={48} />
                     </div>
+                    <p className="text-sm font-medium text-brand-text/60">Pay securely via Cards, UPI, or Netbanking</p>
                   </div>
 
-                  <div className="mb-6 p-4 bg-brand-secondary/10 border border-brand-secondary/20 rounded-2xl text-sm font-medium text-brand-text/80">
-                    <p className="font-bold">UPI ID: {upiId}</p>
-                    <p className="text-xs opacity-60 mt-1">Pay Rs {totalPrice} using any app or enter Transaction ID below</p>
+                  <div className="max-w-xs mx-auto space-y-4">
+                    <button
+                      disabled={status === "sending"}
+                      onClick={handleRazorpayPayment}
+                      className="w-full py-5 bg-brand-primary text-white rounded-2xl font-bold text-lg flex items-center justify-center gap-3 shadow-xl hover:shadow-2xl transition-all active:scale-95 disabled:opacity-50"
+                    >
+                      {status === "sending" ? "Processing..." : (
+                        <>
+                          <FiCreditCard /> Pay Now
+                        </>
+                      )}
+                    </button>
+                    
+                    <p className="text-[10px] text-brand-text/40 uppercase tracking-widest font-bold">
+                      <FiCheckCircle className="inline mr-1" /> Secure checkout powered by Razorpay
+                    </p>
                   </div>
-
-                  {/* Mobile Quick Pay Apps */}
-                  <div className="mb-8 space-y-3">
-                    <p className="text-[10px] font-bold uppercase tracking-widest text-brand-text/40 mb-2">Quick Pay with UPI App</p>
-                    <div className="flex flex-wrap justify-center gap-3">
-                      <a 
-                        href={upiLink}
-                        className="flex items-center gap-2 px-6 py-3 bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-md transition-all active:scale-95 text-sm font-bold text-gray-700"
-                      >
-                        <span className="w-5 h-5 bg-[#673ab7] rounded-full flex items-center justify-center text-white text-[10px]">P</span>
-                        PhonePe
-                      </a>
-                      <a 
-                        href={upiLink}
-                        className="flex items-center gap-2 px-6 py-3 bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-md transition-all active:scale-95 text-sm font-bold text-gray-700"
-                      >
-                        <span className="w-5 h-5 bg-[#4285F4] rounded-full flex items-center justify-center text-white text-[10px]">G</span>
-                        Google Pay
-                      </a>
-                      <a 
-                        href={upiLink}
-                        className="flex items-center gap-2 px-6 py-3 bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-md transition-all active:scale-95 text-sm font-bold text-gray-700"
-                      >
-                        <span className="w-5 h-5 bg-[#00baf2] rounded-full flex items-center justify-center text-white text-[10px]">P</span>
-                        Paytm
-                      </a>
-                    </div>
-                    <p className="text-[9px] text-brand-text/40 italic">* Mobile deep-linking works only on smartphones with UPI apps installed.</p>
-                  </div>
-
-                  <div className="mb-8 text-left">
-                    <label className="block text-[10px] font-bold uppercase tracking-widest text-brand-text/40 mb-2 ml-1 text-center">Enter Payment Transaction ID / UID *</label>
-                    <div className="relative max-w-xs mx-auto">
-                      <FiCheckCircle className="absolute left-4 top-1/2 -translate-y-1/2 text-brand-text/30" />
-                      <input
-                        required
-                        type="text"
-                        value={paymentUid}
-                        onChange={(e) => setPaymentUid(e.target.value)}
-                        placeholder="Ex: 123456789012"
-                        className="w-full pl-11 pr-5 py-3 rounded-xl bg-brand-bg border border-brand-primary/20 focus:bg-white focus:ring-2 focus:ring-brand-primary outline-none transition-all font-bold text-center tracking-widest"
-                      />
-                    </div>
-                  </div>
-
-                  <button
-                    disabled={status === "sending"}
-                    onClick={handleOrderSubmit}
-                    className="w-full py-5 bg-brand-primary text-white rounded-2xl font-bold text-lg flex items-center justify-center gap-3 shadow-xl hover:shadow-2xl transition-all disabled:opacity-50"
-                  >
-                    {status === "sending" ? "Verifying..." : "I have completed the payment"}
-                  </button>
-                  <p className="mt-4 text-[10px] text-brand-text/40 uppercase tracking-widest font-bold">Secure checkout powered by Google Pay / PhonePe / Paytm</p>
                 </motion.div>
               )}
             </AnimatePresence>
