@@ -1,754 +1,384 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { FiPlus, FiMinus, FiCheckCircle, FiPackage, FiUser, FiPhone, FiMapPin, FiArrowLeft, FiShoppingCart, FiMail, FiTrash2, FiCreditCard, FiSmartphone, FiEdit3, FiHome } from "react-icons/fi";
-import { QRCodeSVG } from "qrcode.react";
-import emailjs from "@emailjs/browser";
+import { 
+  FiPlus, FiMinus, FiShoppingCart, FiSearch, FiArrowRight, 
+  FiStar, FiPackage, FiMessageSquare, FiX, FiCheck, FiChevronRight 
+} from "react-icons/fi";
+import { useApp } from "../context/AppContext";
+import { Link } from "react-router-dom";
 
-import red_chilli_signature from "../assets/red_chilli_signature.jpg";
-import turmeric_signature from "../assets/turmeric_signature.jpg";
-import coriander_signature from "../assets/coriander_signature.jpg";
+// Fallback Assets
+import chilliImg from "../assets/red_chilli_signature.jpg";
+import turmericImg from "../assets/turmeric_signature.jpg";
+import corianderImg from "../assets/coriander_signature.jpg";
 
-const SERVICE_ID = import.meta.env.VITE_SERVICE_ID;
-const TEMPLATE_ID = import.meta.env.VITE_ORDER_TEMPLATE_ID;
-const PUBLIC_KEY = import.meta.env.VITE_PUBLIC_KEY;
-const RAZORPAY_KEY_ID = import.meta.env.VITE_RAZORPAY_KEY_ID;
+const ASSET_MAP = {
+  red_chilli_signature: chilliImg,
+  turmeric_signature: turmericImg,
+  coriander_signature: corianderImg,
+};
 
-const products = [
-  {
-    id: "red-chilli",
-    name: "Red Chilli Powder",
-    image: red_chilli_signature,
-    description: "Pure, vibrant, and ethically sourced. No artificial colors.",
-    accent: "#a52a2a",
-    prices: {
-      "50g": 25,
-      "100g": 45,
-      "250g": 120
-    }
-  },
-  {
-    id: "turmeric",
-    name: "Turmeric Powder",
-    image: turmeric_signature,
-    description: "Golden purity with high curcumin content. Natural health in every pinch.",
-    accent: "#d2691e",
-    prices: {
-      "50g": 25,
-      "100g": 45,
-      "250g": 130
-    }
-  },
-  {
-    id: "coriander",
-    name: "Coriander Powder",
-    image: coriander_signature,
-    description: "Fragrant and earthy. Processed to keep the natural aroma intact.",
-    accent: "#e6b800",
-    prices: {
-      "50g": 20,
-      "100g": 40,
-      "250g": 90
-    }
-  },
-];
+const WEIGHTS = ["50g", "100g", "250g"];
+const CATEGORIES = ["All", "Pure Spices", "Blended Spices", "Exotic Herbs", "Aromatic Seeds"];
 
-const weights = ["50g", "100g", "250g"];
-const DELIVERY_FEE = 30;
+const getProductImage = (product) => {
+  if (product.image) return product.image; // Base64 or URL from DB
+  if (product.imageKey && ASSET_MAP[product.imageKey]) return ASSET_MAP[product.imageKey];
+  return "https://images.unsplash.com/photo-1596040033229-a9821ebd058d?auto=format&fit=crop&q=80&w=800"; // High-quality spice placeholder
+};
 
-export default function OrderNow() {
-  const [step, setStep] = useState(1); // 1: Selection, 2: Checkout, 3: Payment, 4: Success
-  const [selectedProduct, setSelectedProduct] = useState(products[0]);
+function ProductDetailModal({ product, onClose }) {
+  const { addToCart, addReview, cart } = useApp();
   const [selectedWeight, setSelectedWeight] = useState("100g");
-  const [quantity, setQuantity] = useState(1);
-  
-  const [cart, setCart] = useState([]);
-  const [customerInfo, setCustomerInfo] = useState({
-    name: "",
-    email: "",
-    phone: "",
-    alternatePhone: "",
-    address: "",
-    landmark: "",
-    city: "",
-    state: "",
-    pincode: "",
-    orderNotes: "",
-  });
+  const [showReviewForm, setShowReviewForm] = useState(false);
+  const [reviewForm, setReviewForm] = useState({ rating: 5, comment: "", customerName: "" });
 
-  const [paymentUid, setPaymentUid] = useState("");
-  const [status, setStatus] = useState(""); // "", "sending", "success", "error"
-
-  // Cart Logic
-  const addToCart = () => {
-    const existingIndex = cart.findIndex(
-      item => item.productId === selectedProduct.id && item.weight === selectedWeight
-    );
-
-    if (existingIndex > -1) {
-      const newCart = [...cart];
-      newCart[existingIndex].quantity += quantity;
-      setCart(newCart);
-    } else {
-      const newItem = {
-        id: Date.now(),
-        productId: selectedProduct.id,
-        name: selectedProduct.name,
-        weight: selectedWeight,
-        price: selectedProduct.prices[selectedWeight],
-        quantity: quantity,
-        image: selectedProduct.image
-      };
-      setCart([...cart, newItem]);
-    }
-    // Reset selection after adding
-    setQuantity(1);
-    
-    // Show feedback
-    setStatus("added");
-    setTimeout(() => {
-      setStatus("");
-    }, 1500);
-  };
-
-  const removeFromCart = (id) => {
-    setCart(cart.filter(item => item.id !== id));
-  };
-
-  const updateCartQuantity = (id, delta) => {
-    setCart(cart.map(item => {
-      if (item.id === id) {
-        return { ...item, quantity: Math.max(1, item.quantity + delta) };
-      }
-      return item;
-    }));
-  };
-
-  const subtotal = cart.reduce((acc, item) => acc + (item.price * item.quantity), 0);
-  const totalPrice = cart.length > 0 ? subtotal + DELIVERY_FEE : 0;
-
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setCustomerInfo(prev => ({ ...prev, [name]: value }));
-  };
-
-  const handleCheckoutProgress = (e) => {
+  const handleReviewSubmit = async (e) => {
     e.preventDefault();
-    const requiredFields = ["name", "email", "phone", "address", "city", "state", "pincode"];
-    const missingFields = requiredFields.filter(field => !customerInfo[field]);
-    
-    if (missingFields.length > 0) {
-      alert(`Please fill in the following required fields: ${missingFields.join(", ")}`);
-      return;
-    }
-
-    if (customerInfo.pincode.length !== 6 || isNaN(customerInfo.pincode)) {
-      alert("Please enter a valid 6-digit Pincode");
-      return;
-    }
-
-    setStep(3); // Go to Payment
+    if (!reviewForm.comment || !reviewForm.customerName) return;
+    await addReview(product.id, reviewForm);
+    setReviewForm({ rating: 5, comment: "", customerName: "" });
+    setShowReviewForm(false);
   };
 
-  const handleOrderSubmit = async (transactionId = null) => {
-    const finalPaymentUid = transactionId || paymentUid;
-
-    // Basic validation for keys
-    if (!SERVICE_ID || !TEMPLATE_ID || !PUBLIC_KEY) {
-      console.warn("EmailJS credentials missing. Falling back to success simulation for demo.");
-      setStatus("success");
-      setStep(4);
-      return;
-    }
-
-    if (!finalPaymentUid) {
-      alert("Payment verification failed. Please try again.");
-      return;
-    }
-
-    setStatus("sending");
-
-    try {
-      const cartDetails = cart.map(item => `${item.name} (${item.weight}) x${item.quantity} - Rs ${item.price * item.quantity}`).join("\n");
-      
-      const templateParams = {
-        from_name: customerInfo.name,
-        customer_email: customerInfo.email,
-        customer_phone: customerInfo.phone,
-        alternate_phone: customerInfo.alternatePhone || "N/A",
-        customer_address: `${customerInfo.address}, ${customerInfo.landmark ? `Landmark: ${customerInfo.landmark}, ` : ""}${customerInfo.city}, ${customerInfo.state} - ${customerInfo.pincode}`,
-        order_details: cartDetails,
-        payment_uid: finalPaymentUid,
-        subtotal: `Rs ${subtotal}`,
-        delivery_fee: `Rs ${DELIVERY_FEE}`,
-        total_price: `Rs ${totalPrice}`,
-        order_notes: customerInfo.orderNotes || "No notes",
-        reply_to: customerInfo.email, 
-        message: `Order Details:\n${cartDetails}\n\nSubtotal: Rs ${subtotal}\nDelivery Fee: Rs ${DELIVERY_FEE}\nTotal Price: Rs ${totalPrice}\n\nPayment UID: ${finalPaymentUid}\n\nDeliver to:\n${customerInfo.name}\n${customerInfo.address}\nLandmark: ${customerInfo.landmark}\nCity: ${customerInfo.city}, State: ${customerInfo.state}\nPincode: ${customerInfo.pincode}\nPhone: ${customerInfo.phone}\nAlt Phone: ${customerInfo.alternatePhone}\n\nNotes: ${customerInfo.orderNotes}`
-      };
-
-      await emailjs.send(SERVICE_ID, TEMPLATE_ID, templateParams, PUBLIC_KEY);
-      
-      setStatus("success");
-      setStep(4);
-    } catch (err) {
-      console.error("Order error:", err);
-      setStatus("error");
-      const errorMsg = err?.text || err?.message || "Unknown error";
-      alert(`Order error: ${errorMsg}. Please ensure your EmailJS credentials in .env are correct.`);
-    }
-  };
-
-  const resetOrder = () => {
-    setStep(1);
-    setStatus("");
-    setCart([]);
-    setCustomerInfo({ 
-      name: "", email: "", phone: "", alternatePhone: "",
-      address: "", landmark: "", city: "", state: "", 
-      pincode: "", orderNotes: "" 
-    });
-    setQuantity(1);
-    setPaymentUid("");
-  };
-
-  const handleRazorpayPayment = () => {
-    if (!RAZORPAY_KEY_ID) {
-      alert("Razorpay Key is not configured. Please use UPI instead.");
-      return;
-    }
-
-    const options = {
-      key: RAZORPAY_KEY_ID,
-      amount: totalPrice * 100, // amount in the smallest currency unit (paise)
-      currency: "INR",
-      name: "Spice of India",
-      description: "Spice Order Payment",
-      image: "/favicon.svg",
-      handler: function (response) {
-        setPaymentUid(response.razorpay_payment_id);
-        handleOrderSubmit(response.razorpay_payment_id);
-      },
-      prefill: {
-        name: customerInfo.name,
-        email: customerInfo.email,
-        contact: customerInfo.phone,
-      },
-      notes: {
-        address: customerInfo.address,
-      },
-      theme: {
-        color: "#a52a2a",
-      },
-    };
-
-    const rzp = new window.Razorpay(options);
-    rzp.on("payment.failed", function (response) {
-      console.error(response.error);
-      alert("Payment Failed: " + response.error.description);
-    });
-    rzp.open();
-  };
-
-  // No longer using manual UPI QR
-
-  if (step === 4) {
-    return (
-      <section id="order" className="py-24 bg-brand-bg min-h-[600px] flex items-center justify-center">
-        <motion.div 
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="bg-white p-12 md:p-16 rounded-[3.5rem] shadow-2xl text-center max-w-2xl mx-4 border border-brand-primary/10"
-        >
-          <div className="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center text-green-600 text-5xl mx-auto mb-8">
-            <FiCheckCircle />
-          </div>
-          <h2 className="text-4xl md:text-5xl font-bold text-brand-text mb-4">Order Successful!</h2>
-          <p className="text-xl text-brand-text/60 mb-10 leading-relaxed">
-            Thank you, <span className="text-brand-primary font-bold">{customerInfo.name}</span>. Your order has been placed and payment confirmed. <br /> Total: <span className="text-brand-primary font-bold">Rs {totalPrice}</span>. <br /> We'll contact you at {customerInfo.phone} for delivery updates.
-          </p>
-          <button 
-            onClick={resetOrder}
-            className="bg-brand-primary text-white px-12 py-4 rounded-full font-bold text-lg shadow-xl hover:shadow-2xl transition-all"
-          >
-            Shop More
-          </button>
-        </motion.div>
-      </section>
-    );
-  }
+  const displayImage = getProductImage(product);
 
   return (
-    <section id="order" className="py-24 bg-brand-bg relative overflow-hidden">
+    <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 bg-black/80 backdrop-blur-md" onClick={onClose} />
+      <motion.div
+        initial={{ opacity: 0, scale: 0.9, y: 20 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.9, y: 20 }}
+        className="relative w-full max-w-6xl bg-white rounded-[3rem] shadow-2xl overflow-hidden z-10 flex flex-col md:flex-row max-h-[90vh]"
+      >
+        <button onClick={onClose} className="absolute top-8 right-8 z-20 w-12 h-12 bg-black/5 hover:bg-black/10 rounded-full flex items-center justify-center text-brand-text transition-all">
+           <FiX size={24} />
+        </button>
+
+        {/* Left: Image Section */}
+        <div className="md:w-1/2 bg-brand-bg/30 relative flex items-center justify-center p-12">
+           <motion.img 
+             layoutId={`img-${product.id}`}
+             src={displayImage} 
+             alt={product.name} 
+             className="w-full h-full object-contain drop-shadow-2xl"
+           />
+           <div className="absolute bottom-10 left-10 flex gap-2">
+              <span className="bg-white/80 backdrop-blur-md text-brand-text px-4 py-2 rounded-full text-xs font-bold shadow-sm border border-brand-text/5">
+                 {product.category}
+              </span>
+           </div>
+        </div>
+
+        {/* Right: Details Section */}
+        <div className="md:w-1/2 p-10 md:p-16 overflow-y-auto custom-scrollbar flex flex-col">
+           <div className="mb-8">
+              <div className="flex items-center gap-3 mb-4">
+                 <div className="flex items-center gap-1 bg-green-600 text-white px-3 py-1 rounded-lg text-sm font-bold">
+                    {(product.rating || 5.0).toFixed(1)} <FiStar size={14} className="fill-current" />
+                 </div>
+                 <span className="text-brand-text/40 font-medium text-sm">{product.reviews?.length || 0} Reviews</span>
+                 <span className="w-1.5 h-1.5 rounded-full bg-brand-text/10"></span>
+                 <span className="text-brand-text/40 font-medium text-sm">{product.orderCount || 0} Orders</span>
+              </div>
+              <h1 className="text-4xl md:text-5xl font-playfair font-black text-brand-text mb-4 leading-tight">{product.name}</h1>
+              <p className="text-brand-text/60 leading-relaxed font-medium text-lg">
+                {product.description}
+              </p>
+           </div>
+
+           {/* Weight Selection */}
+           <div className="mb-10">
+              <p className="text-[10px] font-black uppercase tracking-widest text-brand-text/30 mb-4">Select Weight Variant</p>
+              <div className="flex flex-wrap gap-4">
+                 {WEIGHTS.map(w => (
+                   <button
+                     key={w}
+                     onClick={() => setSelectedWeight(w)}
+                     className={`px-8 py-4 rounded-2xl font-bold transition-all border-2 ${
+                       selectedWeight === w 
+                        ? "bg-brand-text text-white border-brand-text shadow-xl scale-105" 
+                        : "bg-white text-brand-text/50 border-brand-text/5 hover:border-brand-primary/20"
+                     }`}
+                   >
+                      {w} — ₹{product.prices[w]}
+                   </button>
+                 ))}
+              </div>
+           </div>
+
+           {/* Actions */}
+           <div className="grid grid-cols-2 gap-6 mb-12">
+              <button 
+                onClick={() => addToCart(product, selectedWeight)}
+                className="bg-brand-bg text-brand-text py-6 rounded-3xl font-black text-lg flex items-center justify-center gap-3 hover:bg-brand-text hover:text-white transition-all shadow-sm"
+              >
+                 <FiShoppingCart /> Add to Basket
+              </button>
+              <Link 
+                to="/checkout"
+                onClick={() => {
+                   addToCart(product, selectedWeight);
+                }}
+                className="bg-brand-primary text-white py-6 rounded-3xl font-black text-lg flex items-center justify-center gap-3 hover:bg-[#A50000] transition-all shadow-xl shadow-brand-primary/20"
+              >
+                 Buy Now <FiChevronRight />
+              </Link>
+           </div>
+
+           {/* Reviews Section */}
+           <div className="border-t border-brand-text/5 pt-10">
+              <div className="flex items-center justify-between mb-8">
+                 <h3 className="text-xl font-black text-brand-text flex items-center gap-3">
+                    Customer Reviews <FiMessageSquare className="text-brand-primary" />
+                 </h3>
+                 <button 
+                   onClick={() => setShowReviewForm(!showReviewForm)}
+                   className="text-brand-primary font-bold text-sm hover:underline"
+                 >
+                    {showReviewForm ? "Cancel" : "Write a Review"}
+                 </button>
+              </div>
+
+              {showReviewForm && (
+                <motion.form 
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: "auto", opacity: 1 }}
+                  onSubmit={handleReviewSubmit}
+                  className="bg-brand-bg/30 p-6 rounded-3xl mb-8 space-y-4"
+                >
+                   <div className="flex items-center gap-4">
+                      <div className="flex-1">
+                         <input 
+                           required 
+                           placeholder="Your Name" 
+                           value={reviewForm.customerName}
+                           onChange={e => setReviewForm(p => ({ ...p, customerName: e.target.value }))}
+                           className="w-full bg-white px-4 py-3 rounded-xl border border-brand-text/5 focus:outline-none focus:ring-2 focus:ring-brand-primary/20"
+                         />
+                      </div>
+                      <div className="flex gap-1">
+                         {[1, 2, 3, 4, 5].map(s => (
+                           <button 
+                             key={s} 
+                             type="button"
+                             onClick={() => setReviewForm(p => ({ ...p, rating: s }))}
+                             className={`p-1 transition-colors ${reviewForm.rating >= s ? "text-amber-500" : "text-brand-text/10"}`}
+                           >
+                              <FiStar className="fill-current" />
+                           </button>
+                         ))}
+                      </div>
+                   </div>
+                   <textarea 
+                     required
+                     placeholder="Share your experience with this spice..."
+                     rows={3}
+                     value={reviewForm.comment}
+                     onChange={e => setReviewForm(p => ({ ...p, comment: e.target.value }))}
+                     className="w-full bg-white px-4 py-3 rounded-xl border border-brand-text/5 focus:outline-none focus:ring-2 focus:ring-brand-primary/20 resize-none"
+                   />
+                   <button type="submit" className="w-full bg-brand-text text-white py-4 rounded-xl font-bold hover:bg-brand-primary transition-all">
+                      Post Review
+                   </button>
+                </motion.form>
+              )}
+
+              <div className="space-y-6">
+                 {product.reviews?.length > 0 ? (
+                   product.reviews.map((r, i) => (
+                     <div key={i} className="group">
+                        <div className="flex items-center justify-between mb-2">
+                           <div className="flex items-center gap-3">
+                              <div className="w-10 h-10 bg-brand-text text-white rounded-full flex items-center justify-center font-bold text-xs">
+                                 {r.customerName.charAt(0)}
+                              </div>
+                              <div>
+                                 <p className="font-bold text-brand-text text-sm">{r.customerName}</p>
+                                 <div className="flex text-amber-500 text-[10px]">
+                                    {[...Array(5)].map((_, i) => <FiStar key={i} className={i < r.rating ? "fill-current" : "text-brand-text/10"} />)}
+                                 </div>
+                              </div>
+                           </div>
+                           <span className="text-[10px] font-bold text-brand-text/30 uppercase tracking-widest">
+                              {new Date(r.createdAt).toLocaleDateString()}
+                           </span>
+                        </div>
+                        <p className="text-brand-text/60 text-sm leading-relaxed ml-13 italic">
+                          "{r.comment}"
+                        </p>
+                     </div>
+                   ))
+                 ) : (
+                   <div className="py-10 text-center opacity-30">
+                      <p className="italic">No reviews yet. Be the first to share!</p>
+                   </div>
+                 )}
+              </div>
+           </div>
+        </div>
+      </motion.div>
+    </div>
+  );
+}
+
+export default function OrderNow() {
+  const { products, cart, addToCart } = useApp();
+  const [searchQuery, setSearchQuery] = useState("");
+  const [activeCategory, setActiveCategory] = useState("All");
+  const [detailProduct, setDetailProduct] = useState(null);
+
+  const filteredProducts = useMemo(() => {
+    return products.filter(p => {
+      const matchesSearch = p.name.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesCategory = activeCategory === "All" || p.category === activeCategory;
+      return matchesSearch && matchesCategory;
+    });
+  }, [products, searchQuery, activeCategory]);
+
+  return (
+    <section className="py-12 bg-[#faf9f6] relative overflow-hidden font-inter min-h-screen">
       <div className="max-w-7xl mx-auto px-6 relative z-10">
-        <div className="text-center mb-16">
-          {/* Step Progress Indicator */}
-          <div className="flex justify-center items-center mb-12 gap-3 md:gap-4 overflow-hidden py-2">
-            {[1, 2, 3].map((s) => (
-              <React.Fragment key={s}>
-                <div className={`w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center font-bold transition-all duration-500 shadow-sm ${
-                  step >= s 
-                    ? "bg-brand-primary text-white scale-110 shadow-lg shadow-brand-primary/20" 
-                    : "bg-white text-brand-text/20 border border-brand-bg"
-                }`}>
-                  {step > s ? <FiCheckCircle /> : s}
-                </div>
-                {s < 3 && (
-                  <div className={`h-0.5 md:h-1 w-8 md:w-20 rounded-full transition-all duration-700 ${
-                    step > s ? "bg-brand-primary" : "bg-brand-bg"
-                  }`}></div>
-                )}
-              </React.Fragment>
+        
+        {/* Header Section */}
+        <div className="mb-16">
+          <motion.h2
+            initial={{ opacity: 0, x: -20 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }}
+            className="text-brand-primary text-5xl md:text-7xl font-signature mb-4"
+          >
+            Artisan Collections
+          </motion.h2>
+          <motion.div
+            initial={{ opacity: 0, width: 0 }}
+            whileInView={{ opacity: 1, width: 120 }}
+            viewport={{ once: true }}
+            className="h-1.5 bg-brand-primary rounded-full mb-6"
+          ></motion.div>
+        </div>
+
+        {/* Filters and Search */}
+        <div className="flex flex-col md:flex-row gap-6 mb-12">
+          <div className="relative flex-1 group">
+            <FiSearch className="absolute left-6 top-1/2 -translate-y-1/2 text-brand-text/30 group-focus-within:text-brand-primary transition-colors text-xl" />
+            <input 
+              type="text"
+              placeholder="Search for your favorite spice..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-16 pr-8 py-5 rounded-[2rem] bg-white border border-brand-text/5 focus:ring-4 focus:ring-brand-primary/10 focus:border-brand-primary/20 outline-none transition-all shadow-sm font-medium"
+            />
+          </div>
+          
+          <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+            {CATEGORIES.map(cat => (
+              <button
+                key={cat}
+                onClick={() => setActiveCategory(cat)}
+                className={`px-8 py-4 rounded-full font-bold text-sm whitespace-nowrap transition-all border ${
+                  activeCategory === cat 
+                    ? "bg-brand-text text-white border-brand-text shadow-lg" 
+                    : "bg-white text-brand-text/50 border-brand-text/5 hover:border-brand-primary/20"
+                }`}
+              >
+                {cat}
+              </button>
             ))}
           </div>
-
-          <motion.h2
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="text-brand-primary text-5xl md:text-6xl font-signature mb-4"
-          >
-            {step === 1 ? "Shop Our Spices" : 
-             step === 2 ? "Checkout Details" : 
-             "Secure Payment"}
-          </motion.h2>
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.1 }}
-            className="text-brand-text/60 text-lg max-w-2xl mx-auto"
-          >
-            {step === 1 ? "Add your favorites to the cart and experience authentic flavors." :
-             step === 2 ? "Provide your delivery information to proceed." :
-             "Scan the QR code below to complete your payment via any UPI app."}
-          </motion.p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
-          {/* Left Side: Dynamic Content based on Step */}
-          <div className="w-full">
-            <AnimatePresence mode="wait">
-              {step === 1 && (
-                <motion.div
-                  key="selection"
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: 20 }}
-                  className="space-y-8"
-                >
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                    {products.map((product) => (
-                      <motion.div
-                        key={product.id}
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
-                        onClick={() => setSelectedProduct(product)}
-                        className={`cursor-pointer rounded-2xl overflow-hidden border-2 transition-all duration-300 ${
-                          selectedProduct.id === product.id
-                            ? "border-brand-primary shadow-lg"
-                            : "border-transparent bg-white shadow-sm"
-                        }`}
-                      >
-                        <img src={product.image} alt={product.name} className="w-full h-32 object-cover" />
-                        <div className="p-4 text-center">
-                          <p className={`font-bold text-sm ${selectedProduct.id === product.id ? "text-brand-primary" : "text-brand-text"}`}>
-                            {product.name}
-                          </p>
-                        </div>
-                      </motion.div>
-                    ))}
+        {/* Product Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
+          {filteredProducts.map((product) => {
+            const displayImage = getProductImage(product);
+            return (
+              <motion.div
+                key={product.id}
+                layout
+                onClick={() => setDetailProduct(product)}
+                className="group cursor-pointer bg-white rounded-[3rem] overflow-hidden border border-brand-text/5 shadow-sm hover:shadow-2xl transition-all duration-700"
+              >
+                <div className="relative h-72 overflow-hidden bg-brand-bg/20">
+                  <motion.img 
+                    layoutId={`img-${product.id}`}
+                    src={displayImage} 
+                    alt={product.name} 
+                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000"
+                  />
+                  <div className="absolute top-6 left-6 flex flex-col gap-2">
+                     <div className="flex items-center gap-1 bg-green-600 text-white px-3 py-1 rounded-lg text-xs font-bold shadow-lg">
+                        {(product.rating || 5.0).toFixed(1)} <FiStar size={10} className="fill-current" />
+                     </div>
+                     <span className="bg-white/80 backdrop-blur-md text-brand-text text-[9px] font-black uppercase tracking-widest px-3 py-1.5 rounded-full border border-brand-text/5">
+                        {product.orderCount || 0} Orders
+                     </span>
                   </div>
-
-                  <div className="bg-white p-6 md:p-8 rounded-[2.5rem] shadow-xl border border-brand-accent/10">
-                    <h4 className="text-3xl font-bold text-brand-primary mb-2">{selectedProduct.name}</h4>
-                    <p className="text-brand-text/70 mb-6">{selectedProduct.description}</p>
-                    
-                    <div className="space-y-6">
-                      <div>
-                        <label className="block text-xs font-bold uppercase tracking-widest text-brand-text/40 mb-3">Select Weight</label>
-                        <div className="flex flex-wrap gap-2">
-                          {weights.map((w) => (
-                            <button
-                              key={w}
-                              onClick={() => setSelectedWeight(w)}
-                              className={`px-4 py-2 rounded-xl font-bold transition-all flex flex-col items-center min-w-[80px] ${
-                                selectedWeight === w
-                                  ? "bg-brand-primary text-white shadow-lg shadow-brand-primary/20"
-                                  : "bg-brand-bg text-brand-text hover:bg-brand-accent/10 border border-brand-accent/5"
-                              }`}
-                            >
-                              <span className="text-sm">{w}</span>
-                              <span className={`text-[10px] mt-1 ${selectedWeight === w ? "text-white/80" : "text-brand-primary"}`}>
-                                Rs {selectedProduct.prices[w]}
-                              </span>
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-
-                      <div className="flex items-center justify-between bg-brand-bg/50 p-4 rounded-2xl">
-                        <div>
-                          <label className="block text-[10px] font-bold uppercase tracking-widest text-brand-text/40 mb-1">Quantity</label>
-                          <div className="flex items-center gap-4">
-                            <button
-                              onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                              className="w-10 h-10 rounded-lg bg-white shadow-sm flex items-center justify-center text-brand-primary hover:bg-brand-primary hover:text-white transition-all"
-                            >
-                              <FiMinus />
-                            </button>
-                            <span className="text-xl font-bold min-w-[2ch] text-center">{quantity}</span>
-                            <button
-                              onClick={() => setQuantity(quantity + 1)}
-                              className="w-10 h-10 rounded-lg bg-white shadow-sm flex items-center justify-center text-brand-primary hover:bg-brand-primary hover:text-white transition-all"
-                            >
-                              <FiPlus />
-                            </button>
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <p className="text-[10px] font-bold text-brand-text/40 uppercase tracking-widest">Total Price</p>
-                          <p className="text-2xl font-black text-brand-primary">Rs {selectedProduct.prices[selectedWeight] * quantity}</p>
-                        </div>
-                      </div>
-
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <button
-                          disabled={status === "added"}
-                          onClick={addToCart}
-                          className={`py-4 rounded-2xl font-bold text-lg flex items-center justify-center gap-3 shadow-xl transition-all group active:scale-95 ${
-                            status === "added" 
-                              ? "bg-green-600 text-white" 
-                              : "bg-white text-brand-primary border-2 border-brand-primary/20 hover:border-brand-primary"
-                          }`}
-                        >
-                          {status === "added" ? (
-                            <>
-                              <FiCheckCircle className="animate-bounce" />
-                              Added!
-                            </>
-                          ) : (
-                            <>
-                              <FiPlus className="group-hover:scale-110 transition-transform" /> 
-                              Add to Basket
-                            </>
-                          )}
-                        </button>
-
-                        <button
-                          onClick={() => setStep(2)}
-                          disabled={cart.length === 0 && status !== "added"}
-                          className={`py-4 rounded-2xl font-bold text-lg flex items-center justify-center gap-3 shadow-xl transition-all group active:scale-95 bg-brand-primary text-white hover:shadow-2xl ${
-                            cart.length === 0 && status !== "added" ? "opacity-50 cursor-not-allowed" : ""
-                          }`}
-                        >
-                          Go to Checkout
-                          <FiShoppingCart className="group-hover:translate-x-1 transition-transform" /> 
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </motion.div>
-              )}
-
-              {step === 2 && (
-                <motion.div
-                  key="checkout"
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -20 }}
-                  className="bg-white p-8 md:p-10 rounded-[2.5rem] shadow-xl border border-brand-accent/10 w-full"
-                >
-                  <button 
-                    onClick={() => setStep(1)}
-                    className="flex items-center gap-2 text-brand-primary font-bold mb-8 hover:translate-x-[-4px] transition-transform"
-                  >
-                    <FiArrowLeft /> Back to Shop
-                  </button>
-
-                  <form className="space-y-6" onSubmit={handleCheckoutProgress}>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-[10px] font-bold uppercase tracking-widest text-brand-text/40 mb-2 ml-1">Full Name *</label>
-                        <div className="relative">
-                          <FiUser className="absolute left-4 top-1/2 -translate-y-1/2 text-brand-text/30" />
-                          <input
-                            required
-                            type="text" name="name" value={customerInfo.name} onChange={handleInputChange}
-                            placeholder="John Doe"
-                            className="w-full pl-11 pr-5 py-3 rounded-xl bg-brand-bg/50 border border-transparent focus:bg-white focus:ring-2 focus:ring-brand-primary outline-none transition-all font-medium text-sm"
-                          />
-                        </div>
-                      </div>
-                      <div>
-                        <label className="block text-[10px] font-bold uppercase tracking-widest text-brand-text/40 mb-2 ml-1">Email Address *</label>
-                        <div className="relative">
-                          <FiMail className="absolute left-4 top-1/2 -translate-y-1/2 text-brand-text/30" />
-                          <input
-                            required
-                            type="email" name="email" value={customerInfo.email} onChange={handleInputChange}
-                            placeholder="john@example.com"
-                            className="w-full pl-11 pr-5 py-3 rounded-xl bg-brand-bg/50 border border-transparent focus:bg-white focus:ring-2 focus:ring-brand-primary outline-none transition-all font-medium text-sm"
-                          />
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-[10px] font-bold uppercase tracking-widest text-brand-text/40 mb-2 ml-1">Phone Number *</label>
-                        <div className="relative">
-                          <FiPhone className="absolute left-4 top-1/2 -translate-y-1/2 text-brand-text/30" />
-                          <input
-                            required
-                            type="tel" name="phone" value={customerInfo.phone} onChange={handleInputChange}
-                            placeholder="+91 00000 00000"
-                            className="w-full pl-11 pr-5 py-3 rounded-xl bg-brand-bg/50 border border-transparent focus:bg-white focus:ring-2 focus:ring-brand-primary outline-none transition-all font-medium text-sm"
-                          />
-                        </div>
-                      </div>
-                      <div>
-                        <label className="block text-[10px] font-bold uppercase tracking-widest text-brand-text/40 mb-2 ml-1">Alt. Phone (Optional)</label>
-                        <div className="relative">
-                          <FiSmartphone className="absolute left-4 top-1/2 -translate-y-1/2 text-brand-text/30" />
-                          <input
-                            type="tel" name="alternatePhone" value={customerInfo.alternatePhone} onChange={handleInputChange}
-                            placeholder="Secondary number"
-                            className="w-full pl-11 pr-5 py-3 rounded-xl bg-brand-bg/50 border border-transparent focus:bg-white focus:ring-2 focus:ring-brand-primary outline-none transition-all font-medium text-sm"
-                          />
-                        </div>
-                      </div>
-                    </div>
-
-                    <div>
-                      <label className="block text-[10px] font-bold uppercase tracking-widest text-brand-text/40 mb-2 ml-1">Detail Address (House No, Street) *</label>
-                      <div className="relative">
-                        <FiHome className="absolute left-4 top-4 text-brand-text/30" />
-                        <textarea
-                          required
-                          name="address" value={customerInfo.address} onChange={handleInputChange} rows={2}
-                          placeholder="B-2, Spicy Street, Emerald Gardens"
-                          className="w-full pl-11 pr-5 py-3 rounded-xl bg-brand-bg/50 border border-transparent focus:bg-white focus:ring-2 focus:ring-brand-primary outline-none transition-all font-medium resize-none text-sm"
-                        />
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-[10px] font-bold uppercase tracking-widest text-brand-text/40 mb-2 ml-1">Landmark (Optional)</label>
-                        <div className="relative">
-                          <FiMapPin className="absolute left-4 top-1/2 -translate-y-1/2 text-brand-text/30" />
-                          <input
-                            type="text" name="landmark" value={customerInfo.landmark} onChange={handleInputChange}
-                            placeholder="Near City Mall"
-                            className="w-full pl-11 pr-5 py-3 rounded-xl bg-brand-bg/50 border border-transparent focus:bg-white focus:ring-2 focus:ring-brand-primary outline-none transition-all font-medium text-sm"
-                          />
-                        </div>
-                      </div>
-                      <div>
-                        <label className="block text-[10px] font-bold uppercase tracking-widest text-brand-text/40 mb-2 ml-1">Pincode *</label>
-                        <div className="relative">
-                          <FiMapPin className="absolute left-4 top-1/2 -translate-y-1/2 text-brand-text/30" />
-                          <input
-                            required
-                            type="text" name="pincode" value={customerInfo.pincode} onChange={handleInputChange}
-                            maxLength={6}
-                            placeholder="400001"
-                            className="w-full pl-11 pr-5 py-3 rounded-xl bg-brand-bg/50 border border-transparent focus:bg-white focus:ring-2 focus:ring-brand-primary outline-none transition-all font-medium text-sm"
-                          />
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-[10px] font-bold uppercase tracking-widest text-brand-text/40 mb-2 ml-1">City *</label>
-                        <input
-                          required
-                          type="text" name="city" value={customerInfo.city} onChange={handleInputChange}
-                          placeholder="Mumbai"
-                          className="w-full px-5 py-3 rounded-xl bg-brand-bg/50 border border-transparent focus:bg-white focus:ring-2 focus:ring-brand-primary outline-none transition-all font-medium text-sm"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-[10px] font-bold uppercase tracking-widest text-brand-text/40 mb-2 ml-1">State *</label>
-                        <input
-                          required
-                          type="text" name="state" value={customerInfo.state} onChange={handleInputChange}
-                          placeholder="Maharashtra"
-                          className="w-full px-5 py-3 rounded-xl bg-brand-bg/50 border border-transparent focus:bg-white focus:ring-2 focus:ring-brand-primary outline-none transition-all font-medium text-sm"
-                        />
-                      </div>
-                    </div>
-
-                    <div>
-                      <label className="block text-[10px] font-bold uppercase tracking-widest text-brand-text/40 mb-2 ml-1">Order Notes / Specific Instructions</label>
-                      <div className="relative">
-                        <FiEdit3 className="absolute left-4 top-4 text-brand-text/30" />
-                        <textarea
-                          name="orderNotes" value={customerInfo.orderNotes} onChange={handleInputChange} rows={2}
-                          placeholder="Please deliver by evening..."
-                          className="w-full pl-11 pr-5 py-3 rounded-xl bg-brand-bg/50 border border-transparent focus:bg-white focus:ring-2 focus:ring-brand-primary outline-none transition-all font-medium resize-none text-sm"
-                        />
-                      </div>
-                    </div>
-
-                    <button
-                      type="submit"
-                      className="w-full py-5 bg-brand-primary text-white rounded-2xl font-bold text-lg flex items-center justify-center gap-3 shadow-xl hover:shadow-2xl transition-all"
-                    >
-                      <FiCreditCard /> Proceed to Payment
-                    </button>
-                  </form>
-                </motion.div>
-              )}
-
-              {step === 3 && (
-                <motion.div
-                  key="payment"
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.95 }}
-                  className="bg-white p-8 md:p-10 rounded-[2.5rem] shadow-xl border border-brand-accent/10 w-full text-center"
-                >
-                  <button 
-                    onClick={() => setStep(2)}
-                    className="flex justify-start items-center gap-2 text-brand-primary font-bold mb-8 hover:translate-x-[-4px] transition-transform"
-                  >
-                    <FiArrowLeft /> Back to Details
-                  </button>
-
-                  <h3 className="text-2xl font-bold text-brand-text mb-2">Final Step: Payment</h3>
-                  <p className="text-brand-text/60 mb-8">Amount to Pay: <span className="text-brand-primary font-bold text-xl">Rs {totalPrice}</span></p>
-
-                  <div className="bg-brand-bg p-8 rounded-3xl inline-block mb-10 relative">
-                    <div className="w-24 h-24 bg-white rounded-2xl shadow-sm flex items-center justify-center text-brand-primary mx-auto mb-4">
-                      <FiCreditCard size={48} />
-                    </div>
-                    <p className="text-sm font-medium text-brand-text/60">Pay securely via Cards, UPI, or Netbanking</p>
-                  </div>
-
-                  <div className="max-w-xs mx-auto space-y-4">
-                    <button
-                      disabled={status === "sending"}
-                      onClick={handleRazorpayPayment}
-                      className="w-full py-5 bg-brand-primary text-white rounded-2xl font-bold text-lg flex items-center justify-center gap-3 shadow-xl hover:shadow-2xl transition-all active:scale-95 disabled:opacity-50"
-                    >
-                      {status === "sending" ? "Processing..." : (
-                        <>
-                          <FiCreditCard /> Pay Now
-                        </>
-                      )}
-                    </button>
-                    
-                    <p className="text-[10px] text-brand-text/40 uppercase tracking-widest font-bold">
-                      <FiCheckCircle className="inline mr-1" /> Secure checkout powered by Razorpay
-                    </p>
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
-
-          {/* Right Side: Cart Summary (Visible during all steps) */}
-          <div className="w-full lg:sticky lg:top-32">
-            <div className="bg-white rounded-[2.5rem] shadow-2xl border border-brand-accent/10 overflow-hidden">
-              <div className="bg-brand-primary p-6 text-white flex justify-between items-center">
-                <div className="flex items-center gap-3">
-                  <FiShoppingCart className="text-xl" />
-                  <h3 className="text-xl font-bold">Your Basket</h3>
                 </div>
-                <span className="bg-white text-brand-primary px-3 py-1 rounded-full text-xs font-black">
-                  {cart.reduce((acc, item) => acc + item.quantity, 0)} Items
-                </span>
-              </div>
-
-              <div className="p-6 md:p-8">
-                {cart.length === 0 ? (
-                  <div className="py-12 text-center text-brand-text/40 italic">
-                    <FiPackage className="mx-auto text-4xl mb-4 opacity-20" />
-                    <p>Your basket is empty. <br /> Select spices to get started.</p>
+                
+                <div className="p-10">
+                  <h3 className="text-2xl font-black text-brand-text mb-3 group-hover:text-brand-primary transition-colors">{product.name}</h3>
+                  <p className="text-brand-text/40 text-sm mb-8 line-clamp-2 font-medium leading-relaxed italic">
+                    "{product.description}"
+                  </p>
+                  
+                  <div className="flex justify-between items-end">
+                     <div>
+                        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-brand-primary mb-1">Starting From</p>
+                        <p className="text-3xl font-black text-brand-text">₹{product.prices["50g"]}</p>
+                     </div>
+                     <button className="w-14 h-14 bg-brand-bg text-brand-text rounded-full flex items-center justify-center group-hover:bg-brand-primary group-hover:text-white transition-all shadow-inner">
+                        <FiArrowRight size={24} className="group-hover:translate-x-1 transition-transform" />
+                     </button>
                   </div>
-                ) : (
-                  <div className="space-y-6">
-                    <div className="max-h-[300px] overflow-y-auto pr-2 space-y-4 custom-scrollbar">
-                      <AnimatePresence>
-                        {cart.map((item) => (
-                          <motion.div
-                            key={item.id}
-                            initial={{ opacity: 0, height: 0 }}
-                            animate={{ opacity: 1, height: "auto" }}
-                            exit={{ opacity: 0, height: 0 }}
-                            className="flex items-center gap-4 group"
-                          >
-                            <img src={item.image} alt={item.name} className="w-16 h-16 rounded-xl object-cover shadow-sm" />
-                            <div className="flex-1">
-                              <h5 className="font-bold text-sm text-brand-text">{item.name}</h5>
-                              <p className="text-[10px] font-bold text-brand-primary/60 uppercase">{item.weight}</p>
-                              <div className="flex items-center gap-3 mt-1">
-                                <button onClick={() => updateCartQuantity(item.id, -1)} className="hover:text-brand-primary transition-colors"><FiMinus size={12} /></button>
-                                <span className="text-xs font-black">{item.quantity}</span>
-                                <button onClick={() => updateCartQuantity(item.id, 1)} className="hover:text-brand-primary transition-colors"><FiPlus size={12} /></button>
-                              </div>
-                            </div>
-                            <div className="text-right">
-                              <p className="font-black text-brand-primary">Rs {item.price * item.quantity}</p>
-                              <button 
-                                onClick={() => removeFromCart(item.id)}
-                                className="text-brand-text/30 hover:text-red-500 transition-colors mt-1"
-                              >
-                                <FiTrash2 size={14} />
-                              </button>
-                            </div>
-                          </motion.div>
-                        ))}
-                      </AnimatePresence>
-                    </div>
-
-                    <div className="pt-6 border-t border-brand-bg">
-                      <div className="flex justify-between text-sm mb-2 text-brand-text/60">
-                        <span>Subtotal</span>
-                        <span className="font-bold">Rs {subtotal}</span>
-                      </div>
-                      <div className="flex justify-between text-sm mb-4 text-brand-text/60">
-                        <span>Delivery Fee</span>
-                        <span className="font-bold">Rs {DELIVERY_FEE}</span>
-                      </div>
-                      <div className="flex justify-between items-end pt-4 border-t-2 border-dashed border-brand-primary/10">
-                        <span className="text-lg font-bold text-brand-text">Grand Total</span>
-                        <span className="text-3xl font-black text-brand-primary leading-none">Rs {totalPrice}</span>
-                      </div>
-                    </div>
-
-                    {step === 1 && cart.length > 0 && (
-                      <button
-                        onClick={() => setStep(2)}
-                        className="w-full py-4 bg-brand-primary text-white rounded-2xl font-bold text-lg flex items-center justify-center gap-3 shadow-xl hover:shadow-2xl transition-all mt-4"
-                      >
-                        Checkout Now
-                      </button>
-                    )}
-
-                    {step > 1 && (
-                      <button
-                        onClick={() => setStep(1)}
-                        className="w-full py-3 border-2 border-brand-primary/20 text-brand-primary rounded-xl font-bold text-sm flex items-center justify-center gap-2 hover:bg-brand-primary/5 transition-all mt-4"
-                      >
-                        <FiPlus /> Add More Spices
-                      </button>
-                    )}
-                  </div>
-                )}
-              </div>
-            </div>
-            
-            {/* Visual reassurance */}
-            <div className="mt-8 flex items-center justify-center gap-6 text-brand-text/40 grayscale opacity-50">
-               <FiCheckCircle className="text-2xl" />
-               <span className="text-[10px] font-bold uppercase tracking-[0.2em]">100% Secure Checkout</span>
-            </div>
-          </div>
+                </div>
+              </motion.div>
+            );
+          })}
         </div>
       </div>
+
+      {/* Floating Go To Cart Button */}
+      <AnimatePresence>
+        {cart.length > 0 && (
+          <motion.div
+            initial={{ y: 100, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: 100, opacity: 0 }}
+            className="fixed bottom-10 left-1/2 -translate-x-1/2 z-[100] w-[calc(100%-3rem)] max-w-lg"
+          >
+            <Link 
+              to="/cart"
+              className="bg-brand-text text-white p-6 rounded-[2.5rem] shadow-[0_30px_60px_rgba(0,0,0,0.3)] flex items-center justify-between group hover:bg-brand-primary transition-all duration-500"
+            >
+              <div className="flex items-center gap-5">
+                <div className="w-14 h-14 bg-white/10 rounded-2xl flex items-center justify-center relative overflow-hidden">
+                   <div className="absolute inset-0 bg-gradient-to-tr from-brand-secondary/20 to-transparent"></div>
+                   <FiShoppingCart className="text-2xl text-brand-secondary relative z-10" />
+                </div>
+                <div>
+                   <p className="text-[10px] font-black uppercase tracking-[0.3em] text-white/40">Basket Summary</p>
+                   <p className="text-2xl font-black">{cart.reduce((a, b) => a + b.quantity, 0)} Items Added</p>
+                </div>
+              </div>
+              <div className="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center group-hover:bg-white transition-all">
+                 <FiArrowRight className="text-3xl group-hover:text-brand-primary group-hover:translate-x-1 transition-all" />
+              </div>
+            </Link>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Product Detail Modal */}
+      <AnimatePresence>
+         {detailProduct && (
+           <ProductDetailModal 
+             product={detailProduct} 
+             onClose={() => setDetailProduct(null)} 
+           />
+         )}
+      </AnimatePresence>
     </section>
   );
 }

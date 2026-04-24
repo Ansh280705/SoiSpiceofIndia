@@ -1,0 +1,60 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Product {
+  id          String   @id @default(cuid())
+  name        String
+  description String
+  category    String
+  image       String?
+  imageKey    String?
+  accent      String   @default("#a52a2a")
+  prices      Json     // Store as { "50g": 25, ... }
+  orderCount  Int      @default(0)
+  rating      Float    @default(0.0)
+  reviews     Review[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Review {
+  id           String   @id @default(cuid())
+  rating       Int      @default(5)
+  comment      String
+  customerName String
+  productId    String
+  product      Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  createdAt    DateTime @default(now())
+}
+
+model Order {
+  id           String   @id @default(cuid())
+  orderNumber  String   @unique // e.g. SOI-123456
+  customerName String
+  email        String
+  phone        String
+  address      String
+  city         String
+  state        String
+  pincode      String
+  cart         Json     // Store the array of items
+  subtotal     Float
+  totalPrice   Float
+  paymentUid   String?
+  status       String   @default("Pending") // Pending, Confirmed, Shipped, Delivered
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Admin {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String   
+  createdAt DateTime @default(now())
+}
