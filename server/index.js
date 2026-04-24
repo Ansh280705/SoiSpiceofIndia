@@ -116,7 +116,21 @@ app.get('/api/reviews', async (req, res) => {
   }
 });
 
+app.patch('/api/reviews/:id/reply', async (req, res) => {
+  try {
+    const { adminReply } = req.body;
+    const review = await prisma.review.update({
+      where: { id: req.params.id },
+      data: { adminReply }
+    });
+    res.json(review);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 app.delete('/api/reviews/:id', async (req, res) => {
+
   try {
     const review = await prisma.review.delete({ where: { id: req.params.id } });
     

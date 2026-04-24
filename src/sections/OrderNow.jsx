@@ -238,7 +238,21 @@ function ProductDetailModal({ product, onClose }) {
                         <p className="text-brand-text/50 text-base leading-relaxed ml-16 italic font-medium">
                           "{r.comment}"
                         </p>
+
+                        {r.adminReply && (
+                          <div className="mt-6 ml-16 bg-brand-text text-white p-6 rounded-[2.5rem] shadow-xl relative overflow-hidden">
+                             <div className="absolute top-0 right-0 w-24 h-24 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/2"></div>
+                             <div className="flex items-center gap-3 mb-3">
+                                <FiCornerDownRight className="text-brand-secondary" />
+                                <span className="text-[10px] font-black uppercase tracking-widest text-brand-secondary">Official Response from SOI</span>
+                             </div>
+                             <p className="relative z-10 text-sm font-medium italic opacity-90 leading-relaxed">
+                                "{r.adminReply}"
+                             </p>
+                          </div>
+                        )}
                      </motion.div>
+
                    ))
                  ) : (
                    <div className="py-16 text-center">

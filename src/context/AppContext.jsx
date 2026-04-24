@@ -127,7 +127,21 @@ export function AppProvider({ children }) {
     }
   }, [addToast]);
 
+  const replyToReview = useCallback(async (reviewId, adminReply) => {
+    try {
+      const res = await axios.patch(`${API_URL}/reviews/${reviewId}/reply`, { adminReply });
+      setReviews(prev => prev.map(r => r.id === reviewId ? res.data : r));
+      const prodRes = await axios.get(`${API_URL}/products`);
+      setProducts(prodRes.data);
+      addToast("Reply saved successfully!", "success");
+      return res.data;
+    } catch (error) {
+      addToast("Failed to save reply", "error");
+    }
+  }, [addToast]);
+
   const deleteReview = useCallback(async (id) => {
+
     try {
       await axios.delete(`${API_URL}/reviews/${id}`);
       setReviews(prev => prev.filter(r => r.id !== id));
@@ -210,7 +224,8 @@ export function AppProvider({ children }) {
     <AppContext.Provider value={{
       products, addProduct, updateProduct, deleteProduct,
       orders, addOrder, updateOrderStatus,
-      reviews, addReview, deleteReview,
+      reviews, addReview, deleteReview, replyToReview,
+
       cart, addToCart, removeFromCart, updateCartQuantity, clearCart,
       toasts, addToast, removeToast,
       loading
