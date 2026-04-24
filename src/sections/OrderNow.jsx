@@ -96,7 +96,8 @@ function ProductDetailModal({ product, onClose }) {
                  <div className="flex items-center gap-4 text-brand-text/30 font-bold text-xs uppercase tracking-widest">
                     <span>{product.reviews?.length || 0} Reviews</span>
                     <span className="w-1.5 h-1.5 rounded-full bg-brand-text/10"></span>
-                    <span>{product.orderCount || 0} Orders</span>
+                    <span>{product.orderCount >= 1000 ? `${(product.orderCount / 1000).toFixed(1)}k+` : product.orderCount} Ordered</span>
+
                  </div>
               </div>
               
@@ -343,8 +344,9 @@ export default function OrderNow() {
                         {(product.rating || 5.0).toFixed(1)} <FiStar size={8} className="fill-current md:w-[10px]" />
                      </div>
                      <span className="bg-white/80 backdrop-blur-md text-brand-text text-[7px] md:text-[9px] font-black uppercase tracking-widest px-2 py-1 md:px-3 md:py-1.5 rounded-full border border-brand-text/5">
-                        {product.orderCount || 0} Orders
+                        {product.orderCount >= 1000 ? `${(product.orderCount / 1000).toFixed(1)}k+` : product.orderCount} Ordered
                      </span>
+
                   </div>
                 </div>
                 
