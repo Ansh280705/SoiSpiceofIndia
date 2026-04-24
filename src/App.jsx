@@ -10,7 +10,9 @@ import CartPage from "./pages/CartPage";
 import CheckoutPage from "./pages/CheckoutPage";
 import PaymentPage from "./pages/PaymentPage";
 import OrderSuccessPage from "./pages/OrderSuccessPage";
+import AdminOrderDetail from "./admin/AdminOrderDetail";
 import React from "react";
+
 
 export default function App() {
   return (
@@ -32,6 +34,15 @@ export default function App() {
               </ProtectedRoute>
             }
           />
+          <Route
+            path="/admin/orders/:id"
+            element={
+              <ProtectedRoute>
+                <AdminOrderDetail />
+              </ProtectedRoute>
+            }
+          />
+
         </Routes>
         <ToastContainer />
       </BrowserRouter>

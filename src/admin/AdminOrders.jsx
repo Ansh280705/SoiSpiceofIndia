@@ -1,6 +1,10 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { FiShoppingBag, FiSearch, FiChevronDown, FiEye, FiX } from "react-icons/fi";
+import { 
+  FiShoppingBag, FiSearch, FiChevronDown, FiEye, FiCalendar, 
+  FiUser, FiArrowRight, FiPackage, FiActivity 
+} from "react-icons/fi";
+import { useNavigate } from "react-router-dom";
 import { useApp } from "../context/AppContext";
 
 const STATUSES = ["Pending", "Confirmed", "Shipped", "Delivered"];
@@ -12,224 +16,183 @@ const STATUS_STYLES = {
   Delivered: "bg-emerald-500/20 text-emerald-400 border-emerald-500/30",
 };
 
-function OrderDetailModal({ order, onClose }) {
-  return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={onClose} />
-      <motion.div
-        initial={{ opacity: 0, scale: 0.95, y: 20 }}
-        animate={{ opacity: 1, scale: 1, y: 0 }}
-        exit={{ opacity: 0, scale: 0.95, y: 20 }}
-        className="relative w-full max-w-lg bg-[#1a1a1a] border border-white/10 rounded-3xl shadow-2xl z-10 max-h-[85vh] overflow-hidden flex flex-col"
-      >
-        <div className="p-6 border-b border-white/5 flex items-center justify-between">
-          <div>
-            <h3 className="text-white font-bold text-xl">{order.id}</h3>
-            <p className="text-white/40 text-xs mt-0.5">{new Date(order.createdAt).toLocaleString("en-IN")}</p>
-          </div>
-          <button onClick={onClose} className="text-white/30 hover:text-white transition-colors">
-            <FiX className="text-xl" />
-          </button>
-        </div>
-
-        <div className="p-6 overflow-y-auto custom-scrollbar space-y-6">
-          {/* Status */}
-          <div>
-            <p className="text-white/30 text-xs font-bold uppercase tracking-widest mb-2">Status</p>
-            <span className={`px-3 py-1.5 rounded-full text-sm font-bold border ${STATUS_STYLES[order.status]}`}>{order.status}</span>
-          </div>
-
-          {/* Customer */}
-          <div>
-            <p className="text-white/30 text-xs font-bold uppercase tracking-widest mb-3">Customer Details</p>
-            <div className="bg-white/5 rounded-2xl p-4 space-y-2">
-              <p className="text-white font-semibold">{order.customerInfo?.name}</p>
-              <p className="text-white/50 text-sm">{order.customerInfo?.email}</p>
-              <p className="text-white/50 text-sm">{order.customerInfo?.phone}</p>
-              <p className="text-white/50 text-sm">{order.customerInfo?.address}, {order.customerInfo?.city}, {order.customerInfo?.state} - {order.customerInfo?.pincode}</p>
-            </div>
-          </div>
-
-          {/* Items */}
-          <div>
-            <p className="text-white/30 text-xs font-bold uppercase tracking-widest mb-3">Order Items</p>
-            <div className="space-y-3">
-              {(order.cart || []).map((item, i) => (
-                <div key={i} className="bg-white/5 rounded-xl p-3 flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-lg overflow-hidden flex-shrink-0 bg-white/5">
-                    {item.image ? (
-                      <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center text-white/10">
-                        <FiShoppingBag size={20} />
-                      </div>
-                    )}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-white font-medium text-sm truncate">{item.name}</p>
-                    <p className="text-white/40 text-xs">{item.weight} × {item.quantity}</p>
-                  </div>
-                  <p className="text-white font-bold text-sm">₹{item.price * item.quantity}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Total */}
-          <div className="bg-brand-primary/10 border border-brand-primary/20 rounded-2xl p-4 flex justify-between items-center">
-            <span className="text-white font-bold">Grand Total</span>
-            <span className="text-brand-primary font-black text-xl">₹{order.totalPrice}</span>
-          </div>
-        </div>
-      </motion.div>
-    </div>
-  );
-}
-
 export default function AdminOrders() {
   const { orders, updateOrderStatus, addToast } = useApp();
+  const navigate = useNavigate();
   const [search, setSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState("All");
-  const [viewOrder, setViewOrder] = useState(null);
 
-  const handleStatusChange = (id, newStatus) => {
+  const handleStatusChange = (e, id) => {
+    e.stopPropagation();
+    const newStatus = e.target.value;
     updateOrderStatus(id, newStatus);
-    addToast(`Order ${id} updated to ${newStatus}`, "info");
+    addToast(`Order updated to ${newStatus}`, "success");
   };
 
   const filtered = orders.filter(o => {
     const matchSearch = o.id.toLowerCase().includes(search.toLowerCase()) ||
-      (o.customerInfo?.name || "").toLowerCase().includes(search.toLowerCase());
+      (o.customerInfo?.name || o.customerName || "").toLowerCase().includes(search.toLowerCase());
     const matchStatus = filterStatus === "All" || o.status === filterStatus;
     return matchSearch && matchStatus;
   });
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-12 min-h-screen bg-[#faf9f6] -m-10 p-10 font-inter">
       {/* Header */}
-      <div>
-        <h2 className="text-white font-bold text-2xl">Orders</h2>
-        <p className="text-white/30 text-sm">{orders.length} total orders</p>
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-8">
+        <div className="space-y-2">
+          <motion.h2
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            className="text-brand-primary text-5xl md:text-6xl font-signature"
+          >
+            Order Registry
+          </motion.h2>
+          <div className="h-1 w-24 bg-brand-primary rounded-full" />
+          <p className="text-brand-text/40 text-sm font-bold uppercase tracking-widest flex items-center gap-2">
+            <FiActivity className="text-brand-primary" /> Managing {orders.length} active transactions
+          </p>
+        </div>
+        
+        <div className="flex gap-4">
+           <div className="bg-white border border-brand-text/5 px-8 py-4 rounded-[2rem] shadow-sm">
+              <p className="text-[10px] text-brand-text/30 font-black uppercase tracking-widest mb-1">Total Revenue</p>
+              <p className="text-3xl font-black text-brand-text">₹{orders.reduce((acc, curr) => acc + (curr.totalPrice || 0), 0).toLocaleString()}</p>
+           </div>
+        </div>
       </div>
 
       {/* Filters */}
-      <div className="flex flex-col sm:flex-row gap-3">
-        <div className="relative flex-1">
-          <FiSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-white/30" />
+      <div className="flex flex-col md:flex-row gap-6">
+        <div className="relative flex-1 group">
+          <FiSearch className="absolute left-6 top-1/2 -translate-y-1/2 text-brand-text/30 group-focus-within:text-brand-primary transition-colors text-xl" />
           <input
             value={search}
             onChange={e => setSearch(e.target.value)}
-            placeholder="Search by order ID or customer name..."
-            className="w-full pl-11 pr-5 py-3.5 bg-[#161616] border border-white/5 rounded-2xl text-white placeholder:text-white/20 font-medium focus:outline-none focus:ring-2 focus:ring-brand-primary/30 transition-all"
+            placeholder="Search by ID, Name or Phone..."
+            className="w-full pl-16 pr-8 py-5 rounded-[2rem] bg-white border border-brand-text/5 focus:ring-4 focus:ring-brand-primary/10 focus:border-brand-primary/20 outline-none transition-all shadow-sm font-medium"
           />
         </div>
-        <div className="relative">
-          <select
-            value={filterStatus}
-            onChange={e => setFilterStatus(e.target.value)}
-            className="appearance-none pl-4 pr-10 py-3.5 bg-[#161616] border border-white/5 rounded-2xl text-white font-medium focus:outline-none focus:ring-2 focus:ring-brand-primary/30 transition-all"
-          >
-            <option value="All" className="bg-[#1a1a1a]">All Statuses</option>
-            {STATUSES.map(s => <option key={s} value={s} className="bg-[#1a1a1a]">{s}</option>)}
-          </select>
-          <FiChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-white/30 pointer-events-none" />
+        
+        <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+          {["All", ...STATUSES].map(s => (
+            <button
+              key={s}
+              onClick={() => setFilterStatus(s)}
+              className={`px-8 py-4 rounded-full font-bold text-sm whitespace-nowrap transition-all border ${
+                filterStatus === s 
+                  ? "bg-brand-text text-white border-brand-text shadow-lg" 
+                  : "bg-white text-brand-text/50 border-brand-text/5 hover:border-brand-primary/20"
+              }`}
+            >
+              {s}
+            </button>
+          ))}
         </div>
       </div>
 
-      {/* Status Tabs (mobile friendly) */}
-      <div className="flex gap-2 overflow-x-auto pb-1">
-        {["All", ...STATUSES].map(s => (
-          <button
-            key={s}
-            onClick={() => setFilterStatus(s)}
-            className={`flex-shrink-0 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
-              filterStatus === s
-                ? "bg-brand-primary text-white"
-                : "bg-[#161616] text-white/40 hover:text-white border border-white/5"
-            }`}
-          >
-            {s} {s === "All" ? `(${orders.length})` : `(${orders.filter(o => o.status === s).length})`}
-          </button>
-        ))}
-      </div>
+      {/* Artisan Card Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
+        <AnimatePresence mode="popLayout">
+          {filtered.length === 0 ? (
+            <motion.div 
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+              className="col-span-full py-32 text-center bg-white border border-dashed border-brand-text/10 rounded-[3rem]"
+            >
+              <FiShoppingBag className="mx-auto text-6xl text-brand-text/5 mb-4" />
+              <p className="text-brand-text/20 font-black uppercase tracking-widest">No matching orders found</p>
+            </motion.div>
+          ) : (
+            filtered.map((order, i) => (
+              <motion.div
+                key={order.id}
+                layout
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                transition={{ delay: i * 0.05 }}
+                onClick={() => navigate(`/admin/orders/${order.id}`)}
+                className="group relative bg-white rounded-[3.5rem] overflow-hidden border border-brand-text/5 shadow-sm hover:shadow-2xl transition-all duration-700 cursor-pointer"
+              >
+                {/* Header Image/Icon Section */}
+                <div className="relative h-64 bg-brand-bg/20 flex items-center justify-center p-12 overflow-hidden">
+                   <div className="absolute inset-0 bg-gradient-to-tr from-brand-primary/5 to-transparent"></div>
+                   
+                   {/* Product Preview Stack */}
+                   <div className="relative flex -space-x-12">
+                      {(order.cart || []).slice(0, 3).map((item, idx) => (
+                        <div key={idx} className="w-24 h-24 rounded-[2rem] bg-white border-4 border-[#faf9f6] overflow-hidden shadow-2xl transform transition-transform group-hover:scale-110 group-hover:rotate-3" style={{ zIndex: 10 - idx }}>
+                           {item.image ? (
+                             <img src={item.image} alt="" className="w-full h-full object-cover" />
+                           ) : (
+                             <div className="w-full h-full flex items-center justify-center text-brand-text/10">
+                                <FiPackage size={32} />
+                             </div>
+                           )}
+                        </div>
+                      ))}
+                      {(order.cart || []).length > 3 && (
+                        <div className="w-24 h-24 rounded-[2rem] bg-white/80 backdrop-blur-md border-4 border-[#faf9f6] flex items-center justify-center text-sm font-black text-brand-text z-0">
+                           +{(order.cart || []).length - 3}
+                        </div>
+                      )}
+                   </div>
 
-      {/* Orders Table */}
-      <div className="bg-[#161616] border border-white/5 rounded-2xl overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-white/5">
-                <th className="text-left text-white/30 font-bold uppercase tracking-widest text-xs px-6 py-4">Order ID</th>
-                <th className="text-left text-white/30 font-bold uppercase tracking-widest text-xs px-4 py-4 hidden sm:table-cell">Customer</th>
-                <th className="text-left text-white/30 font-bold uppercase tracking-widest text-xs px-4 py-4 hidden lg:table-cell">Date</th>
-                <th className="text-left text-white/30 font-bold uppercase tracking-widest text-xs px-4 py-4">Total</th>
-                <th className="text-left text-white/30 font-bold uppercase tracking-widest text-xs px-4 py-4">Status</th>
-                <th className="text-right text-white/30 font-bold uppercase tracking-widest text-xs px-6 py-4">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-white/5">
-              {filtered.length === 0 ? (
-                <tr>
-                  <td colSpan={6} className="text-center py-16 text-white/20">
-                    <FiShoppingBag className="mx-auto text-4xl mb-3" />
-                    <p className="font-medium">{search || filterStatus !== "All" ? "No orders match your filters" : "No orders yet"}</p>
-                  </td>
-                </tr>
-              ) : (
-                filtered.map((order, i) => (
-                  <motion.tr
-                    key={order.id}
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: i * 0.03 }}
-                    className="hover:bg-white/[0.02] transition-colors"
-                  >
-                    <td className="px-6 py-4">
-                      <p className="text-white font-mono text-xs font-semibold">{order.id}</p>
-                    </td>
-                    <td className="px-4 py-4 hidden sm:table-cell">
-                      <p className="text-white font-medium">{order.customerInfo?.name}</p>
-                      <p className="text-white/30 text-xs">{order.customerInfo?.phone}</p>
-                    </td>
-                    <td className="px-4 py-4 hidden lg:table-cell">
-                      <p className="text-white/50 text-xs">{new Date(order.createdAt).toLocaleDateString("en-IN")}</p>
-                    </td>
-                    <td className="px-4 py-4">
-                      <p className="text-white font-bold">₹{order.totalPrice}</p>
-                    </td>
-                    <td className="px-4 py-4">
-                      <select
-                        value={order.status}
-                        onChange={e => handleStatusChange(order.id, e.target.value)}
-                        className={`text-xs font-bold px-3 py-1.5 rounded-full border appearance-none focus:outline-none cursor-pointer ${STATUS_STYLES[order.status]} bg-transparent`}
-                      >
-                        {STATUSES.map(s => (
-                          <option key={s} value={s} className="bg-[#1a1a1a] text-white">{s}</option>
-                        ))}
-                      </select>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex justify-end">
-                        <button
-                          onClick={() => setViewOrder(order)}
-                          className="p-2.5 rounded-xl bg-white/5 text-white/50 hover:bg-white/10 hover:text-white transition-all"
-                          title="View Details"
-                        >
-                          <FiEye />
-                        </button>
+                   {/* Status Badge */}
+                   <div className="absolute top-8 right-8">
+                      <div className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest border shadow-sm ${STATUS_STYLES[order.status]}`}>
+                         {order.status}
                       </div>
-                    </td>
-                  </motion.tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
+                   </div>
+                   
+                   {/* Date Badge */}
+                   <div className="absolute top-8 left-8">
+                      <div className="bg-white/80 backdrop-blur-md px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest text-brand-text/40 border border-brand-text/5">
+                         {new Date(order.createdAt).toLocaleDateString()}
+                      </div>
+                   </div>
+                </div>
 
-      <AnimatePresence>
-        {viewOrder && <OrderDetailModal order={viewOrder} onClose={() => setViewOrder(null)} />}
-      </AnimatePresence>
+                {/* Content Section */}
+                <div className="p-10 pt-8">
+                   <div className="mb-8">
+                      <p className="text-brand-primary text-[10px] font-black uppercase tracking-[0.2em] mb-2">Order Info</p>
+                      <h3 className="text-3xl font-playfair font-black text-brand-text mb-2 group-hover:text-brand-primary transition-colors">
+                         {order.customerInfo?.name || order.customerName || "Anonymous User"}
+                      </h3>
+                      <p className="text-brand-text/40 text-sm font-medium italic line-clamp-2">
+                        "{(order.cart || []).map(item => item.name).join(", ")}"
+                      </p>
+                   </div>
+
+                   <div className="flex items-center justify-between pt-8 border-t border-brand-text/5">
+                      <div>
+                         <p className="text-[10px] font-black uppercase tracking-[0.2em] text-brand-primary mb-1">Total Value</p>
+                         <p className="text-3xl font-black text-brand-text">₹{order.totalPrice.toLocaleString()}</p>
+                      </div>
+                      
+                      <div className="flex items-center gap-3">
+                         <select
+                           onClick={(e) => e.stopPropagation()}
+                           onChange={(e) => handleStatusChange(e, order.id)}
+                           value={order.status}
+                           className="bg-brand-bg text-brand-text/60 border border-brand-text/5 rounded-xl px-4 py-3 text-[10px] font-black uppercase tracking-widest focus:outline-none focus:ring-2 focus:ring-brand-primary/20 transition-all cursor-pointer hover:bg-white"
+                         >
+                            {STATUSES.map(s => <option key={s} value={s}>{s}</option>)}
+                         </select>
+                         <button className="w-14 h-14 bg-brand-bg text-brand-text rounded-full flex items-center justify-center group-hover:bg-brand-primary group-hover:text-white transition-all shadow-inner border border-brand-text/5">
+                            <FiArrowRight size={24} className="group-hover:translate-x-1 transition-transform" />
+                         </button>
+                      </div>
+                   </div>
+                </div>
+              </motion.div>
+            ))
+          )}
+        </AnimatePresence>
+      </div>
     </div>
   );
 }
+
+
