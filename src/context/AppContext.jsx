@@ -18,7 +18,8 @@ const getProductImage = (product) => {
   return "https://images.unsplash.com/photo-1596040033229-a9821ebd058d?auto=format&fit=crop&q=80&w=800";
 };
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
+const API_URL = import.meta.env.VITE_API_URL || "/api";
+
 
 const AppContext = createContext(null);
 
